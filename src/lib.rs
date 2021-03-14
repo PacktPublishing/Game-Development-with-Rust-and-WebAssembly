@@ -76,8 +76,7 @@ pub fn main_js() -> Result<(), JsValue> {
         });
 
         image.set_onload(Some(callback.as_ref().unchecked_ref()));
-        image.set_onload(Some(error_callback.as_ref().unchecked_ref()));
-        
+        image.set_onerror(Some(error_callback.as_ref().unchecked_ref()));
         image.set_src("rhb.png");
 
         success_rx.await;
