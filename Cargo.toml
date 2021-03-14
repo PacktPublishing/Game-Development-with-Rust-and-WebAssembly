@@ -23,6 +23,7 @@ lto = true
 [dependencies]
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
 # to interact with JavaScript.
+
 wasm-bindgen = { version = "0.2.74", features = ["serde-serialize"] }
 
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
