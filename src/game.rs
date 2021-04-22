@@ -6,7 +6,7 @@ use web_sys::HtmlImageElement;
 
 use crate::{
     browser,
-    engine::{self, Game, KeyState, Point, Rect, Renderer},
+    engine::{self, Game, KeyState, Rect, Renderer},
 };
 
 #[derive(Deserialize)]
@@ -27,26 +27,11 @@ pub struct Sheet {
     frames: HashMap<String, Cell>,
 }
 
-const GRAVITY: i16 = 1;
-
-enum RedHatBoy {
-    Idle,
-    Running,
-    Jumping,
-    Sliding,
-}
-
 pub struct WalkTheDog {
     image: Option<HtmlImageElement>,
-    background: Option<HtmlImageElement>,
     sheet: Option<Sheet>,
     frame: u8,
-    position: Point,
-    velocity: Point,
-    state: RedHatBoy,
 }
-
-// Idle Box x: 60 y: w: h:  (height adjustment, move down 16px)
 
 impl WalkTheDog {
     pub fn new() -> Self {
@@ -54,10 +39,6 @@ impl WalkTheDog {
             image: None,
             sheet: None,
             frame: 0,
-            background: None,
-            position: Point { x: 0, y: 485 },
-            velocity: Point { x: 0, y: 0 },
-            state: RedHatBoy::Idle,
         }
     }
 }
@@ -70,59 +51,11 @@ impl Game for WalkTheDog {
         self.sheet = json.into_serde()?;
         self.image = Some(engine::load_image("rhb.png").await?);
 
-        self.background = Some(engine::load_image("BG.png").await?);
-
         Ok(())
     }
 
     fn update(&mut self, keystate: &KeyState) {
-        let frame_count = match &self.state {
-            RedHatBoy::Idle => 10,
-            RedHatBoy::Running => 8,
-            RedHatBoy::Jumping => 12,
-            RedHatBoy::Sliding => 5,
-        };
-
-        match &self.state {
-            RedHatBoy::Idle => {
-                if keystate.is_pressed("ArrowRight") {
-                    self.state = RedHatBoy::Running;
-                    self.frame = 0;
-                }
-            }
-            RedHatBoy::Running => {
-                if keystate.is_pressed("Space") {
-                    self.velocity.y = -25;
-                    self.state = RedHatBoy::Jumping;
-                    self.frame = 0;
-                }
-                if keystate.is_pressed("ArrowDown") {
-                    self.state = RedHatBoy::Sliding;
-                    self.frame = 0;
-                }
-            }
-            RedHatBoy::Jumping => {
-                self.velocity.y += GRAVITY;
-                if self.position.y >= 478 {
-                    self.velocity.y = 0;
-                    self.position.y = 478;
-                    self.state = RedHatBoy::Running;
-                    self.frame = 0;
-                }
-            }
-            RedHatBoy::Sliding => {
-                if self.frame >= (frame_count * 3) - 1 {
-                    self.frame = 0;
-                    self.state = RedHatBoy::Idle;
-                }
-            }
-        }
-
-        self.position.x += self.velocity.x;
-        self.position.y = self.position.y + self.velocity.y;
-
-        // Run at 20 FPS for the animation, not 60
-        if self.frame < ((frame_count * 3) - 1) {
+        if self.frame < 23 {
             self.frame += 1;
         } else {
             self.frame = 0;
@@ -137,17 +70,7 @@ impl Game for WalkTheDog {
             height: 600.0,
         });
 
-        self.draw_background(renderer);
-
-        let prefix = match &self.state {
-            RedHatBoy::Idle => "Idle",
-            RedHatBoy::Running => "Run",
-            RedHatBoy::Jumping => "Jump",
-            RedHatBoy::Sliding => "Slide",
-        };
-        let frame_name = format!("({}).png", (self.frame / 3) + 1);
-        let frame_name = format!("{} {}", prefix, frame_name);
-        //        let frame_name = format!("Idle (1).png");
+        let frame_name = format!("Run ({}).png", (self.frame / 3) + 1);
         let sprite = self
             .sheet
             .as_ref()
@@ -164,34 +87,12 @@ impl Game for WalkTheDog {
                     height: sprite.frame.h.into(),
                 },
                 &Rect {
-                    x: self.position.x.into(),
-                    y: self.position.y.into(),
+                    x: 300.0,
+                    y: 300.0,
                     width: sprite.frame.w.into(),
                     height: sprite.frame.h.into(),
                 },
             );
         });
-    }
-}
-
-impl WalkTheDog {
-    fn draw_background(&self, renderer: &Renderer) {
-        if let Some(background) = &self.background {
-            renderer.draw_image(
-                &background,
-                &Rect {
-                    x: 0.0,
-                    y: 51.0,
-                    width: 600.0,
-                    height: 600.0,
-                },
-                &Rect {
-                    x: 0.0,
-                    y: 0.0,
-                    width: 600.0,
-                    height: 600.0,
-                },
-            );
-        }
     }
 }
