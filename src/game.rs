@@ -9,6 +9,42 @@ use crate::{
     engine::{self, Game, KeyState, Point, Rect, Renderer},
 };
 
+struct RedHatBoy {
+    state: RedHatBoyStateMachine,
+    sprite_sheet: Sheet,
+}
+
+#[derive(Copy, Clone)]
+enum RedHatBoyStateMachine {
+    Idle(RedHatBoyState<Idle>),
+    Running(RedHatBoyState<Running>),
+}
+
+impl RedHatBoyStateMachine {
+    fn run(mut self) -> Self {
+        match self {
+            RedHatBoyStateMachine::Idle(val) => RedHatBoyStateMachine::Running(val.into()),
+            _ => self,
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+struct RedHatBoyState<S> {
+    _state: S,
+}
+
+#[derive(Copy, Clone)]
+struct Idle;
+#[derive(Copy, Clone)]
+struct Running;
+
+impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
+    fn from(_machine: RedHatBoyState<Idle>) -> Self {
+        RedHatBoyState { _state: Running {} }
+    }
+}
+
 #[derive(Deserialize)]
 struct SheetRect {
     x: u16,
