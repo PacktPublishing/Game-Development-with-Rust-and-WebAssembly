@@ -34,6 +34,13 @@ struct RedHatBoyState<S> {
 
 #[derive(Copy, Clone)]
 struct Idle;
+
+impl RedHatBoyState<Idle> {
+    fn new() -> Self {
+        RedHatBoyState { _state: Idle {} }
+    }
+}
+
 #[derive(Copy, Clone)]
 struct Running;
 
@@ -48,6 +55,7 @@ pub struct WalkTheDog {
     sheet: Option<Sheet>,
     frame: u8,
     position: Point,
+    rhb: Option<RedHatBoy>,
 }
 
 impl WalkTheDog {
@@ -57,6 +65,7 @@ impl WalkTheDog {
             sheet: None,
             frame: 0,
             position: Point { x: 0, y: 0 },
+            rhb: None,
         }
     }
 }
@@ -64,12 +73,19 @@ impl WalkTheDog {
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
-        let sheet = browser::fetch_json("rhb.json").await?.into_serde()?;
+        let json = browser::fetch_json("rhb.json").await?;
+
+        let sheet = json.into_serde()?;
+        let rhb = Some(RedHatBoy {
+            state: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
+            sprite_sheet: json.into_serde::<Sheet>()?,
+        });
         let image = Some(engine::load_image("rhb.png").await?);
 
         Ok(Box::new(WalkTheDog {
             image,
             sheet,
+            rhb,
             frame: self.frame,
             position: self.position,
         }))
