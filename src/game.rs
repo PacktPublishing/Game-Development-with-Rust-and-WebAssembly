@@ -7,9 +7,65 @@ use crate::{
     engine::{self, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 
+const FLOOR: u16 = 475;
+
 struct RedHatBoy {
     state: RedHatBoyStateMachine,
     sprite_sheet: Sheet,
+    image: HtmlImageElement,
+    frame: u8,
+    position: Point,
+    velocity: Point,
+}
+
+impl RedHatBoy {
+    fn new(sheet: Sheet, image: HtmlImageElement) -> Self {
+        RedHatBoy {
+            state: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
+            sprite_sheet: sheet,
+            image,
+            frame: 0,
+            position: Point {
+                x: 0,
+                y: FLOOR as i16,
+            },
+            velocity: Point { x: 0, y: 0 },
+        }
+    }
+
+    fn update(&mut self) {
+        if self.frame < 29 {
+            self.frame += 1;
+        } else {
+            self.frame = 0;
+        }
+    }
+
+    fn draw(&self, renderer: &Renderer) {
+        let frame_name = format!("Idle ({}).png", (self.frame / 3) + 1);
+
+        let sprite = self
+            .sprite_sheet
+            .frames
+            .get(&frame_name)
+            .expect("Cell not found");
+
+        renderer.draw_image(
+            &self.image,
+            &Rect {
+                x: sprite.frame.x.into(),
+                y: sprite.frame.y.into(),
+                width: sprite.frame.w.into(),
+                height: sprite.frame.h.into(),
+            },
+            &Rect {
+                x: self.position.x.into(),
+                y: self.position.y.into(),
+                width: sprite.frame.w.into(),
+                height: sprite.frame.h.into(),
+            },
+        );
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -74,13 +130,13 @@ impl WalkTheDog {
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
         let json = browser::fetch_json("rhb.json").await?;
-
         let sheet = json.into_serde()?;
-        let rhb = Some(RedHatBoy {
-            state: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
-            sprite_sheet: json.into_serde::<Sheet>()?,
-        });
         let image = Some(engine::load_image("rhb.png").await?);
+
+        let rhb = Some(RedHatBoy::new(
+            json.into_serde::<Sheet>()?,
+            engine::load_image("rhb.png").await?,
+        ));
 
         Ok(Box::new(WalkTheDog {
             image,
@@ -117,6 +173,7 @@ impl Game for WalkTheDog {
         } else {
             self.frame = 0;
         }
+        self.rhb.as_mut().unwrap().update();
     }
 
     fn draw(&self, renderer: &Renderer) {
@@ -152,5 +209,7 @@ impl Game for WalkTheDog {
                 },
             );
         });
+
+        self.rhb.as_ref().unwrap().draw(renderer);
     }
 }
