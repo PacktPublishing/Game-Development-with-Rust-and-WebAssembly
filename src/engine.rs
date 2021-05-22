@@ -9,7 +9,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Point {
     pub x: i16,
     pub y: i16,
