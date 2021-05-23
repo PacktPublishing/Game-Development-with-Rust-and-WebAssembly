@@ -11,6 +11,9 @@ use crate::{
 };
 
 const FLOOR: i16 = 475;
+const IDLE_FRAMES: u8 = 29;
+const RUNNING_FRAMES: u8 = 23;
+const RUNNING_SPEED: i16 = 3;
 
 struct RedHatBoy {
     state: RedHatBoyStateMachine,
@@ -78,17 +81,16 @@ impl RedHatBoyStateMachine {
         }
     }
 
-    fn update(mut self) -> Self {
+    fn update(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(mut state) => {
-                if state.game_object.frame < 29 {
-                    state.game_object.frame += 1;
-                } else {
-                    state.game_object.frame = 0;
-                }
+                state.game_object = state.game_object.update(IDLE_FRAMES);
                 RedHatBoyStateMachine::Idle(state)
             }
-            RedHatBoyStateMachine::Running(mut state) => self,
+            RedHatBoyStateMachine::Running(mut state) => {
+                state.game_object = state.game_object.update(RUNNING_FRAMES);
+                RedHatBoyStateMachine::Running(state)
+            }
         }
     }
 }
@@ -97,13 +99,6 @@ impl RedHatBoyStateMachine {
 struct RedHatBoyState<S> {
     game_object: GameObject,
     _state: S,
-}
-
-#[derive(Copy, Clone)]
-struct GameObject {
-    frame: u8,
-    position: Point,
-    velocity: Point,
 }
 
 #[derive(Copy, Clone)]
@@ -126,11 +121,40 @@ impl RedHatBoyState<Idle> {
 struct Running;
 
 impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
-    fn from(machine: RedHatBoyState<Idle>) -> Self {
+    fn from(mut machine: RedHatBoyState<Idle>) -> Self {
+        machine.game_object = machine.game_object.reset_frame().start_running();
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Running {},
         }
+    }
+}
+
+#[derive(Copy, Clone)]
+struct GameObject {
+    frame: u8,
+    position: Point,
+    velocity: Point,
+}
+
+impl GameObject {
+    fn update(mut self, frame_count: u8) -> Self {
+        if self.frame < frame_count {
+            self.frame += 1;
+        } else {
+            self.frame = 0;
+        }
+        self
+    }
+
+    fn reset_frame(mut self) -> Self {
+        self.frame = 0;
+        self
+    }
+
+    fn start_running(mut self) -> Self {
+        self.velocity.x = RUNNING_SPEED;
+        self
     }
 }
 
