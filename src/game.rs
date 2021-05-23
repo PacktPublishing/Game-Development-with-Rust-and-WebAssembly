@@ -14,6 +14,8 @@ const FLOOR: i16 = 475;
 const IDLE_FRAMES: u8 = 29;
 const RUNNING_FRAMES: u8 = 23;
 const RUNNING_SPEED: i16 = 3;
+const IDLE_FRAME_NAME: &str = "Idle";
+const RUN_FRAME_NAME: &str = "Run";
 
 struct RedHatBoy {
     state: RedHatBoyStateMachine,
@@ -84,8 +86,8 @@ impl RedHatBoyStateMachine {
 
     fn state_name(&self) -> &str {
         match self {
-            RedHatBoyStateMachine::Idle(_) => "Idle",
-            RedHatBoyStateMachine::Running(_) => "Run",
+            RedHatBoyStateMachine::Idle(_) => IDLE_FRAME_NAME,
+            RedHatBoyStateMachine::Running(_) => RUN_FRAME_NAME,
         }
     }
 
