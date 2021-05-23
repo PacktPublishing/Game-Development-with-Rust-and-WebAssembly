@@ -36,7 +36,11 @@ impl RedHatBoy {
     }
 
     fn draw(&self, renderer: &Renderer) {
-        let frame_name = format!("Idle ({}).png", (self.state.game_object().frame / 3) + 1);
+        let frame_name = format!(
+            "{} ({}).png",
+            self.state.state_name(),
+            (self.state.game_object().frame / 3) + 1
+        );
 
         let sprite = self
             .sprite_sheet
@@ -72,6 +76,13 @@ impl RedHatBoyStateMachine {
         match self {
             RedHatBoyStateMachine::Idle(val) => RedHatBoyStateMachine::Running(val.into()),
             _ => self,
+        }
+    }
+
+    fn state_name(&self) -> &str {
+        match self {
+            RedHatBoyStateMachine::Idle(_) => "Idle",
+            RedHatBoyStateMachine::Running(_) => "Run",
         }
     }
 
