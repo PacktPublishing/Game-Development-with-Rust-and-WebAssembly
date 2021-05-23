@@ -119,7 +119,7 @@ struct Running;
 
 impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Idle>) -> Self {
-        machine.game_object = machine.game_object.reset_frame().start_running();
+        machine.game_object = machine.game_object.reset_frame().run_right();
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Running {},
@@ -149,8 +149,8 @@ impl GameObject {
         self
     }
 
-    fn start_running(mut self) -> Self {
-        self.velocity.x = RUNNING_SPEED;
+    fn run_right(mut self) -> Self {
+        self.velocity.x += RUNNING_SPEED;
         self
     }
 }
