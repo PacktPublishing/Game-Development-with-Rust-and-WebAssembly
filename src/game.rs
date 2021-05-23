@@ -27,6 +27,10 @@ impl RedHatBoy {
         }
     }
 
+    fn run_right(&mut self) {
+        self.state = self.state.run();
+    }
+
     fn update(&mut self) {
         self.state = self.state.update();
     }
@@ -64,7 +68,7 @@ enum RedHatBoyStateMachine {
 }
 
 impl RedHatBoyStateMachine {
-    fn run(mut self) -> Self {
+    fn run(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(val) => RedHatBoyStateMachine::Running(val.into()),
             _ => self,
@@ -141,6 +145,8 @@ impl GameObject {
         } else {
             self.frame = 0;
         }
+
+        self.position.x += self.velocity.x;
         self
     }
 
@@ -208,6 +214,7 @@ impl Game for WalkTheDog {
 
         if keystate.is_pressed("ArrowRight") {
             velocity.x += 3;
+            self.rhb.as_mut().unwrap().run_right();
         }
 
         if keystate.is_pressed("ArrowLeft") {
