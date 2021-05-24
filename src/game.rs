@@ -160,6 +160,7 @@ impl GameObject {
         }
 
         self.position.x += self.velocity.x;
+        self.position.y += self.velocity.y;
         self
     }
 
