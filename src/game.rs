@@ -13,9 +13,12 @@ use crate::{
 const FLOOR: i16 = 475;
 const IDLE_FRAMES: u8 = 29;
 const RUNNING_FRAMES: u8 = 23;
+const JUMPING_FRAMES: u8 = 35;
 const RUNNING_SPEED: i16 = 3;
 const IDLE_FRAME_NAME: &str = "Idle";
 const RUN_FRAME_NAME: &str = "Run";
+const JUMPING_FRAME_NAME: &str = "Jump";
+const JUMP_SPEED: i16 = -25;
 
 struct RedHatBoy {
     state: RedHatBoyStateMachine,
@@ -34,6 +37,10 @@ impl RedHatBoy {
 
     fn run_right(&mut self) {
         self.state = self.state.run();
+    }
+
+    fn jump(&mut self) {
+        self.state = self.state.jump();
     }
 
     fn update(&mut self) {
@@ -74,6 +81,7 @@ impl RedHatBoy {
 enum RedHatBoyStateMachine {
     Idle(RedHatBoyState<Idle>),
     Running(RedHatBoyState<Running>),
+    Jumping(RedHatBoyState<Jumping>),
 }
 
 impl RedHatBoyStateMachine {
@@ -84,10 +92,18 @@ impl RedHatBoyStateMachine {
         }
     }
 
+    fn jump(self) -> Self {
+        match self {
+            RedHatBoyStateMachine::Running(val) => RedHatBoyStateMachine::Jumping(val.into()),
+            _ => self,
+        }
+    }
+
     fn state_name(&self) -> &str {
         match self {
             RedHatBoyStateMachine::Idle(_) => IDLE_FRAME_NAME,
             RedHatBoyStateMachine::Running(_) => RUN_FRAME_NAME,
+            RedHatBoyStateMachine::Jumping(_) => JUMPING_FRAME_NAME,
         }
     }
 
@@ -95,6 +111,7 @@ impl RedHatBoyStateMachine {
         match self {
             RedHatBoyStateMachine::Idle(state) => &state.game_object,
             RedHatBoyStateMachine::Running(state) => &state.game_object,
+            RedHatBoyStateMachine::Jumping(state) => &state.game_object,
         }
     }
 
@@ -107,6 +124,10 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Running(mut state) => {
                 state.game_object = state.game_object.update(RUNNING_FRAMES);
                 RedHatBoyStateMachine::Running(state)
+            }
+            RedHatBoyStateMachine::Jumping(mut state) => {
+                state.game_object = state.game_object.update(JUMPING_FRAMES);
+                RedHatBoyStateMachine::Jumping(state)
             }
         }
     }
@@ -148,6 +169,19 @@ impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
 }
 
 #[derive(Copy, Clone)]
+struct Jumping;
+
+impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
+    fn from(mut machine: RedHatBoyState<Running>) -> Self {
+        machine.game_object = machine.game_object.reset_frame().jump();
+        RedHatBoyState {
+            game_object: machine.game_object,
+            _state: Jumping {},
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
 struct GameObject {
     frame: u8,
     position: Point,
@@ -169,6 +203,11 @@ impl GameObject {
 
     fn reset_frame(mut self) -> Self {
         self.frame = 0;
+        self
+    }
+
+    fn jump(mut self) -> Self {
+        self.velocity.y = JUMP_SPEED;
         self
     }
 
@@ -223,6 +262,11 @@ impl Game for WalkTheDog {
         if keystate.is_pressed("ArrowRight") {
             self.rhb.as_mut().unwrap().run_right();
         }
+
+        if keystate.is_pressed("Space") {
+            self.rhb.as_mut().unwrap().jump();
+        }
+
         self.rhb.as_mut().unwrap().update();
     }
 
