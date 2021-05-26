@@ -16,6 +16,8 @@ const IDLE_FRAME_NAME: &str = "Idle";
 const RUN_FRAME_NAME: &str = "Run";
 const JUMPING_FRAME_NAME: &str = "Jump";
 const JUMP_SPEED: i16 = -25;
+const GRAVITY: i16 = 1;
+const RHB_HEIGHT: i16 = 136;
 
 struct RedHatBoy {
     state: RedHatBoyStateMachine,
@@ -170,7 +172,10 @@ struct Jumping;
 
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
     fn from(mut machine: RedHatBoyState<Running>) -> Self {
-        machine.game_object = machine.game_object.reset_frame().jump();
+        machine.game_object = machine
+            .game_object
+            .reset_frame()
+            .set_vertical_velocity(JUMP_SPEED);
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Jumping {},
@@ -187,6 +192,10 @@ struct GameObject {
 
 impl GameObject {
     fn update(mut self, frame_count: u8) -> Self {
+        if self.position.y + RHB_HEIGHT < FLOOR {
+            self.velocity.y += GRAVITY;
+        }
+
         if self.frame < frame_count {
             self.frame += 1;
         } else {
@@ -203,8 +212,8 @@ impl GameObject {
         self
     }
 
-    fn jump(mut self) -> Self {
-        self.velocity.y = JUMP_SPEED;
+    fn set_vertical_velocity(mut self, y: i16) -> Self {
+        self.velocity.y = y;
         self
     }
 
