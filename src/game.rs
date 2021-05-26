@@ -195,8 +195,10 @@ struct GameObject {
 
 impl GameObject {
     fn update(mut self, frame_count: u8) -> Self {
-        if self.position.y + RHB_HEIGHT < FLOOR {
-            self.velocity.y += GRAVITY;
+        self.velocity.y += GRAVITY;
+        if self.position.y > FLOOR {
+            self.velocity.y -= GRAVITY;
+            self.position.y = FLOOR;
         }
 
         if self.frame < frame_count {
