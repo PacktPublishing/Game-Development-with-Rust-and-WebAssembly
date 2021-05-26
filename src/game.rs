@@ -14,9 +14,11 @@ const FLOOR: i16 = 475;
 const IDLE_FRAMES: u8 = 29;
 const RUNNING_FRAMES: u8 = 23;
 const JUMPING_FRAMES: u8 = 35;
+const SLIDING_FRAMES: u8 = 14;
 const RUNNING_SPEED: i16 = 3;
 const IDLE_FRAME_NAME: &str = "Idle";
 const RUN_FRAME_NAME: &str = "Run";
+const SLIDING_FRAME_NAME: &str = "Slide";
 const JUMPING_FRAME_NAME: &str = "Jump";
 const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
@@ -39,6 +41,10 @@ impl RedHatBoy {
 
     fn run_right(&mut self) {
         self.state = self.state.run();
+    }
+
+    fn slide(&mut self) {
+        self.state = self.state.slide();
     }
 
     fn jump(&mut self) {
@@ -83,6 +89,7 @@ impl RedHatBoy {
 enum RedHatBoyStateMachine {
     Idle(RedHatBoyState<Idle>),
     Running(RedHatBoyState<Running>),
+    Sliding(RedHatBoyState<Sliding>),
     Jumping(RedHatBoyState<Jumping>),
 }
 
@@ -101,11 +108,19 @@ impl RedHatBoyStateMachine {
         }
     }
 
+    fn slide(self) -> Self {
+        match self {
+            RedHatBoyStateMachine::Running(val) => RedHatBoyStateMachine::Sliding(val.into()),
+            _ => self,
+        }
+    }
+
     fn state_name(&self) -> &str {
         match self {
             RedHatBoyStateMachine::Idle(_) => IDLE_FRAME_NAME,
             RedHatBoyStateMachine::Running(_) => RUN_FRAME_NAME,
             RedHatBoyStateMachine::Jumping(_) => JUMPING_FRAME_NAME,
+            RedHatBoyStateMachine::Sliding(_) => SLIDING_FRAME_NAME,
         }
     }
 
@@ -114,6 +129,7 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Idle(state) => &state.game_object,
             RedHatBoyStateMachine::Running(state) => &state.game_object,
             RedHatBoyStateMachine::Jumping(state) => &state.game_object,
+            RedHatBoyStateMachine::Sliding(state) => &state.game_object,
         }
     }
 
@@ -130,6 +146,14 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Jumping(mut state) => {
                 state.game_object = state.game_object.update(JUMPING_FRAMES);
                 RedHatBoyStateMachine::Jumping(state)
+            }
+            RedHatBoyStateMachine::Sliding(mut state) => {
+                state.game_object = state.game_object.update(SLIDING_FRAMES);
+                if state.game_object.frame >= SLIDING_FRAMES {
+                    RedHatBoyStateMachine::Running(state.into())
+                } else {
+                    RedHatBoyStateMachine::Sliding(state)
+                }
             }
         }
     }
@@ -170,6 +194,16 @@ impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
     }
 }
 
+impl From<RedHatBoyState<Sliding>> for RedHatBoyState<Running> {
+    fn from(mut machine: RedHatBoyState<Sliding>) -> Self {
+        machine.game_object = machine.game_object.reset_frame();
+        RedHatBoyState {
+            game_object: machine.game_object,
+            _state: Running {},
+        }
+    }
+}
+
 #[derive(Copy, Clone)]
 struct Jumping;
 
@@ -182,6 +216,19 @@ impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Jumping {},
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+struct Sliding;
+
+impl From<RedHatBoyState<Running>> for RedHatBoyState<Sliding> {
+    fn from(mut machine: RedHatBoyState<Running>) -> Self {
+        machine.game_object = machine.game_object.reset_frame();
+        RedHatBoyState {
+            game_object: machine.game_object,
+            _state: Sliding {},
         }
     }
 }
@@ -282,6 +329,10 @@ impl Game for WalkTheDog {
 
             if keystate.is_pressed("Space") {
                 rhb.jump();
+            }
+
+            if keystate.is_pressed("ArrowDown") {
+                rhb.slide();
             }
 
             rhb.update();
