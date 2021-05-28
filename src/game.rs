@@ -22,7 +22,6 @@ const SLIDING_FRAME_NAME: &str = "Slide";
 const JUMPING_FRAME_NAME: &str = "Jump";
 const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
-const RHB_HEIGHT: i16 = 136;
 
 pub struct RedHatBoy {
     state: RedHatBoyStateMachine,
@@ -145,10 +144,16 @@ impl RedHatBoyStateMachine {
             }
             RedHatBoyStateMachine::Jumping(mut state) => {
                 state.game_object = state.game_object.update(JUMPING_FRAMES);
-                RedHatBoyStateMachine::Jumping(state)
+
+                if state.game_object.position.y >= FLOOR {
+                    RedHatBoyStateMachine::Running(state.into())
+                } else {
+                    RedHatBoyStateMachine::Jumping(state)
+                }
             }
             RedHatBoyStateMachine::Sliding(mut state) => {
                 state.game_object = state.game_object.update(SLIDING_FRAMES);
+
                 if state.game_object.frame >= SLIDING_FRAMES {
                     RedHatBoyStateMachine::Running(state.into())
                 } else {
@@ -187,6 +192,16 @@ struct Running;
 impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Idle>) -> Self {
         machine.game_object = machine.game_object.reset_frame().run_right();
+        RedHatBoyState {
+            game_object: machine.game_object,
+            _state: Running {},
+        }
+    }
+}
+
+impl From<RedHatBoyState<Jumping>> for RedHatBoyState<Running> {
+    fn from(mut machine: RedHatBoyState<Jumping>) -> Self {
+        machine.game_object = machine.game_object.reset_frame();
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Running {},
@@ -242,9 +257,7 @@ struct GameObject {
 
 impl GameObject {
     fn update(mut self, frame_count: u8) -> Self {
-        if self.position.y < FLOOR {
-            self.velocity.y += GRAVITY;
-        }
+        self.velocity.y += GRAVITY;
 
         if self.frame < frame_count {
             self.frame += 1;
