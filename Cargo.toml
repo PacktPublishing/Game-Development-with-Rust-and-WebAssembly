@@ -21,6 +21,7 @@ lto = true
 #default = ["wee_alloc"]
 
 [dependencies]
+
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
 # to interact with JavaScript.
 wasm-bindgen = { version = "0.2.74", features = ["serde-serialize"] }
