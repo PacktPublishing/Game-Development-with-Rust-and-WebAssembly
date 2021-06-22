@@ -47,13 +47,21 @@ impl WalkTheDog {
 
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
-    async fn initialize(&mut self) -> Result<()> {
+    async fn initialize(&mut self) -> Result<Box<dyn Game>> {
         let json = browser::fetch_json("rhb.json").await?;
 
-        self.sheet = json.into_serde()?;
-        self.image = Some(engine::load_image("rhb.png").await?);
+        let sheet = json.into_serde()?;
+        let image = Some(engine::load_image("rhb.png").await?);
 
-        Ok(())
+        Ok(Box::new(WalkTheDog {
+            image,
+            sheet,
+            frame: self.frame,
+            position: Point {
+                x: self.position.x,
+                y: self.position.y,
+            },
+        }))
     }
 
     fn update(&mut self, keystate: &KeyState) {
