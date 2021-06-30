@@ -5,6 +5,7 @@ use futures::channel::{
     mpsc::{unbounded, UnboundedReceiver},
     oneshot::channel,
 };
+use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
@@ -222,4 +223,22 @@ impl Image {
     pub fn draw(&self, renderer: &Renderer) {
         renderer.draw_entire_image(&self.element, &self.position)
     }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SheetRect {
+    pub x: u16,
+    pub y: u16,
+    pub w: u16,
+    pub h: u16,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Cell {
+    pub frame: SheetRect,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Sheet {
+    pub frames: HashMap<String, Cell>,
 }

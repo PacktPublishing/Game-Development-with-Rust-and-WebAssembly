@@ -1,14 +1,11 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use engine::Image;
-use serde::Deserialize;
-use std::collections::HashMap;
-
 use web_sys::HtmlImageElement;
 
 use crate::{
     browser,
-    engine::{self, Game, KeyState, Point, Rect, Renderer},
+    engine::{self, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 
 const FLOOR: i16 = 475;
@@ -290,24 +287,6 @@ impl GameObject {
         self.velocity.x += RUNNING_SPEED;
         self
     }
-}
-
-#[derive(Deserialize, Debug)]
-struct SheetRect {
-    x: u16,
-    y: u16,
-    w: u16,
-    h: u16,
-}
-
-#[derive(Deserialize, Debug)]
-struct Cell {
-    frame: SheetRect,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Sheet {
-    frames: HashMap<String, Cell>,
 }
 
 pub enum WalkTheDog {
