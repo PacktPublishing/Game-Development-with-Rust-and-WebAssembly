@@ -1,12 +1,13 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use engine::Image;
 
 use web_sys::HtmlImageElement;
 
 use self::red_hat_boy_states::*;
 use crate::{
     browser,
-    engine::{self, Game, KeyState, Rect, Renderer, Sheet},
+    engine::{self, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 
 pub struct RedHatBoy {
@@ -365,7 +366,12 @@ mod red_hat_boy_states {
 
 pub enum WalkTheDog {
     Loading,
-    Loaded(RedHatBoy),
+    Loaded(Walk),
+}
+
+struct Walk {
+    boy: RedHatBoy,
+    background: Image,
 }
 
 impl WalkTheDog {
@@ -379,30 +385,38 @@ impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
         match self {
             WalkTheDog::Loading => {
-                let sheet = browser::fetch_json("rhb.json").await?.into_serde()?;
+                let json = browser::fetch_json("rhb.json").await?;
+                let background = engine::load_image("BG.png").await?;
 
-                let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
-                Ok(Box::new(WalkTheDog::Loaded(rhb)))
+                let rhb = RedHatBoy::new(
+                    json.into_serde::<Sheet>()?,
+                    engine::load_image("rhb.png").await?,
+                );
+
+                Ok(Box::new(WalkTheDog::Loaded(Walk {
+                    boy: rhb,
+                    background: Image::new(background, Point { x: 0, y: 0 }),
+                })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
         }
     }
 
     fn update(&mut self, keystate: &KeyState) {
-        if let WalkTheDog::Loaded(rhb) = self {
+        if let WalkTheDog::Loaded(walk) = self {
             if keystate.is_pressed("ArrowRight") {
-                rhb.run_right();
+                walk.boy.run_right();
             }
 
             if keystate.is_pressed("Space") {
-                rhb.jump();
+                walk.boy.jump();
             }
 
             if keystate.is_pressed("ArrowDown") {
-                rhb.slide();
+                walk.boy.slide();
             }
 
-            rhb.update();
+            walk.boy.update();
         }
     }
 
@@ -414,8 +428,9 @@ impl Game for WalkTheDog {
             height: 600.0,
         });
 
-        if let WalkTheDog::Loaded(rhb) = self {
-            rhb.draw(renderer);
+        if let WalkTheDog::Loaded(walk) = self {
+            walk.background.draw(renderer);
+            walk.boy.draw(renderer);
         }
     }
 }
