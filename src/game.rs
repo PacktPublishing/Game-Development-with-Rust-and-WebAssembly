@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use engine::Image;
-
 use web_sys::HtmlImageElement;
 
 use self::red_hat_boy_states::*;
