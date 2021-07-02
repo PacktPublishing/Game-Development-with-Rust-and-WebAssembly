@@ -53,6 +53,13 @@ impl RedHatBoy {
             .get(&frame_name)
             .expect("Cell not found");
 
+        renderer.draw_rect(&Rect {
+            x: self.state.game_object().position.x.into(),
+            y: self.state.game_object().position.y.into(),
+            width: sprite.frame.w.into(),
+            height: sprite.frame.h.into(),
+        });
+
         renderer.draw_image(
             &self.image,
             &Rect {
