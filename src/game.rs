@@ -179,7 +179,7 @@ impl From<JumpingEndState> for RedHatBoyStateMachine {
 mod red_hat_boy_states {
     use crate::engine::Point;
 
-    const FLOOR: i16 = 475;
+    const FLOOR: i16 = 479;
     const STARTING_POINT: i16 = -20;
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
