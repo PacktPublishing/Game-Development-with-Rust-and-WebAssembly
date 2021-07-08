@@ -6,7 +6,7 @@ use web_sys::HtmlImageElement;
 use self::red_hat_boy_states::*;
 use crate::{
     browser,
-    engine::{self, Game, KeyState, Point, Rect, Renderer, Sheet},
+    engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 
 pub struct RedHatBoy {
@@ -40,27 +40,33 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.update();
     }
 
-    fn draw(&self, renderer: &Renderer) {
-        let frame_name = format!(
+    fn frame_name(&self) -> String {
+        format!(
             "{} ({}).png",
             self.state_machine.frame_name(),
             (self.state_machine.context().frame / 3) + 1
-        );
+        )
+    }
 
-        let sprite = self
-            .sprite_sheet
-            .frames
-            .get(&frame_name)
-            .expect("Cell not found");
+    fn current_sprite(&self) -> Option<&Cell> {
+        self.sprite_sheet.frames.get(&self.frame_name())
+    }
 
-        renderer.draw_rect(&Rect {
+    fn bounding_box(&self) -> Rect {
+        let sprite = self.current_sprite().expect("Cell not found");
+
+        Rect {
             x: (self.state_machine.context().position.x + sprite.sprite_source_size.x as i16)
                 .into(),
             y: (self.state_machine.context().position.y + sprite.sprite_source_size.y as i16)
                 .into(),
             width: sprite.frame.w.into(),
             height: sprite.frame.h.into(),
-        });
+        }
+    }
+
+    fn draw(&self, renderer: &Renderer) {
+        let sprite = self.current_sprite().expect("Cell not found");
 
         renderer.draw_image(
             &self.image,
@@ -70,14 +76,7 @@ impl RedHatBoy {
                 width: sprite.frame.w.into(),
                 height: sprite.frame.h.into(),
             },
-            &Rect {
-                x: (self.state_machine.context().position.x + sprite.sprite_source_size.x as i16)
-                    .into(),
-                y: (self.state_machine.context().position.y + sprite.sprite_source_size.y as i16)
-                    .into(),
-                width: sprite.frame.w.into(),
-                height: sprite.frame.h.into(),
-            },
+            &self.bounding_box(),
         );
     }
 }
@@ -383,7 +382,7 @@ pub enum WalkTheDog {
     Loaded(Walk),
 }
 
-struct Walk {
+pub struct Walk {
     boy: RedHatBoy,
     background: Image,
     stone: Image,
