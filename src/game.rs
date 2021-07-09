@@ -290,7 +290,7 @@ mod red_hat_boy_states {
 
         pub fn kill(self) -> RedHatBoyState<Falling> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame().stop(),
                 _state: Falling {},
             }
         }
@@ -411,6 +411,11 @@ mod red_hat_boy_states {
 
         fn run_right(mut self) -> Self {
             self.velocity.x += RUNNING_SPEED;
+            self
+        }
+
+        fn stop(mut self) -> Self {
+            self.velocity.x = 0;
             self
         }
     }
