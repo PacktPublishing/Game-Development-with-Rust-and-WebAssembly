@@ -9,6 +9,56 @@ use crate::{
     engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 
+struct Platform {
+    sheet: Sheet,
+    image: HtmlImageElement,
+    position: Point,
+}
+
+impl Platform {
+    fn new(sheet: Sheet, image: HtmlImageElement, position: Point) -> Self {
+        Platform {
+            sheet,
+            image,
+            position,
+        }
+    }
+
+    fn draw(&self, renderer: &Renderer) {
+        let platform = self
+            .sheet
+            .frames
+            .get("13.png")
+            .expect("13.png does not exist");
+
+        renderer.draw_image(
+            &self.image,
+            &Rect {
+                x: platform.frame.x.into(),
+                y: platform.frame.y.into(),
+                width: (platform.frame.w * 3).into(),
+                height: platform.frame.h.into(),
+            },
+            &self.bounding_box(),
+        );
+    }
+
+    fn bounding_box(&self) -> Rect {
+        let platform = self
+            .sheet
+            .frames
+            .get("13.png")
+            .expect("13.png does not exist");
+
+        Rect {
+            x: self.position.x.into(),
+            y: self.position.y.into(),
+            width: (platform.frame.w * 3).into(),
+            height: platform.frame.h.into(),
+        }
+    }
+}
+
 pub struct RedHatBoy {
     state_machine: RedHatBoyStateMachine,
     sprite_sheet: Sheet,
@@ -478,6 +528,7 @@ pub struct Walk {
     boy: RedHatBoy,
     background: Image,
     stone: Image,
+    platform: Platform,
 }
 
 impl WalkTheDog {
@@ -491,12 +542,20 @@ impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
         match self {
             WalkTheDog::Loading => {
-                let json = browser::fetch_json("rhb.json").await?;
+                let rhb_sheet = browser::fetch_json("rhb.json").await?;
                 let background = engine::load_image("BG.png").await?;
                 let stone = engine::load_image("Stone.png").await?;
 
+                let platform_sheet = browser::fetch_json("tiles.json").await?;
+
+                let platform = Platform::new(
+                    platform_sheet.into_serde::<Sheet>()?,
+                    engine::load_image("tiles.png").await?,
+                    Point { x: 200, y: 400 },
+                );
+
                 let rhb = RedHatBoy::new(
-                    json.into_serde::<Sheet>()?,
+                    rhb_sheet.into_serde::<Sheet>()?,
                     engine::load_image("rhb.png").await?,
                 );
 
@@ -504,6 +563,7 @@ impl Game for WalkTheDog {
                     boy: rhb,
                     background: Image::new(background, Point { x: 0, y: 0 }),
                     stone: Image::new(stone, Point { x: 150, y: 546 }),
+                    platform,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -548,6 +608,7 @@ impl Game for WalkTheDog {
             walk.background.draw(renderer);
             walk.boy.draw(renderer);
             walk.stone.draw(renderer);
+            walk.platform.draw(renderer);
         }
     }
 }
