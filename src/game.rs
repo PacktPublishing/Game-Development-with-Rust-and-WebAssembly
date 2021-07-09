@@ -104,6 +104,7 @@ enum RedHatBoyStateMachine {
     Sliding(RedHatBoyState<Sliding>),
     Jumping(RedHatBoyState<Jumping>),
     Falling(RedHatBoyState<Falling>),
+    KnockedOut(RedHatBoyState<KnockedOut>),
 }
 
 impl RedHatBoyStateMachine {
@@ -142,6 +143,7 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Jumping(_) => JUMPING_FRAME_NAME,
             RedHatBoyStateMachine::Sliding(_) => SLIDING_FRAME_NAME,
             RedHatBoyStateMachine::Falling(_) => FALLING_FRAME_NAME,
+            RedHatBoyStateMachine::KnockedOut(_) => FALLING_FRAME_NAME,
         }
     }
 
@@ -152,6 +154,7 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Jumping(state) => &state.game_object,
             RedHatBoyStateMachine::Sliding(state) => &state.game_object,
             RedHatBoyStateMachine::Falling(state) => &state.game_object,
+            RedHatBoyStateMachine::KnockedOut(state) => &state.game_object,
         }
     }
 
@@ -185,8 +188,14 @@ impl RedHatBoyStateMachine {
             }
             RedHatBoyStateMachine::Falling(mut state) => {
                 state.game_object = state.game_object.update(FALLING_FRAMES);
-                RedHatBoyStateMachine::Falling(state)
+
+                if state.game_object.frame >= FALLING_FRAMES {
+                    RedHatBoyStateMachine::KnockedOut(state.into())
+                } else {
+                    RedHatBoyStateMachine::Falling(state)
+                }
             }
+            RedHatBoyStateMachine::KnockedOut(_) => self,
         }
     }
 }
@@ -282,10 +291,22 @@ impl From<RedHatBoyState<Running>> for RedHatBoyState<Sliding> {
 struct Falling;
 
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Falling> {
-    fn from(mut machine: RedHatBoyState<Running>) -> Self {
+    fn from(machine: RedHatBoyState<Running>) -> Self {
         RedHatBoyState {
             game_object: machine.game_object.reset_frame().stop(),
             _state: Falling {},
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+struct KnockedOut;
+
+impl From<RedHatBoyState<Falling>> for RedHatBoyState<KnockedOut> {
+    fn from(machine: RedHatBoyState<Falling>) -> Self {
+        RedHatBoyState {
+            game_object: machine.game_object,
+            _state: KnockedOut {},
         }
     }
 }
