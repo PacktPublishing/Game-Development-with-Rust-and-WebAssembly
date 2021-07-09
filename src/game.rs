@@ -284,7 +284,7 @@ struct Falling;
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Falling> {
     fn from(mut machine: RedHatBoyState<Running>) -> Self {
         RedHatBoyState {
-            game_object: machine.game_object,
+            game_object: machine.game_object.reset_frame().stop(),
             _state: Falling {},
         }
     }
@@ -329,6 +329,11 @@ impl GameObject {
 
     fn run_right(mut self) -> Self {
         self.velocity.x += RUNNING_SPEED;
+        self
+    }
+
+    fn stop(mut self) -> Self {
+        self.velocity.x = 0;
         self
     }
 }
