@@ -590,6 +590,8 @@ impl Game for WalkTheDog {
                 walk.boy.slide();
             }
 
+            walk.boy.update();
+
             if walk
                 .boy
                 .bounding_box()
@@ -605,8 +607,6 @@ impl Game for WalkTheDog {
             {
                 walk.boy.kill()
             }
-
-            walk.boy.update();
         }
     }
 
