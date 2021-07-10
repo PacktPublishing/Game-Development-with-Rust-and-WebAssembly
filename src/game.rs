@@ -105,6 +105,10 @@ impl RedHatBoy {
         self.state = self.state.kill();
     }
 
+    fn land(&mut self) {
+        self.state = self.state.land();
+    }
+
     fn update(&mut self) {
         self.state = self.state.update();
     }
@@ -182,6 +186,13 @@ impl RedHatBoyStateMachine {
     fn kill(self) -> Self {
         match self {
             RedHatBoyStateMachine::Running(val) => RedHatBoyStateMachine::Falling(val.into()),
+            _ => self,
+        }
+    }
+
+    fn land(self) -> Self {
+        match self {
+            RedHatBoyStateMachine::Jumping(val) => RedHatBoyStateMachine::Running(val.into()),
             _ => self,
         }
     }
@@ -472,6 +483,14 @@ impl Game for WalkTheDog {
 
             if keystate.is_pressed("ArrowDown") {
                 walk.boy.slide();
+            }
+
+            if walk
+                .boy
+                .bounding_box()
+                .intersects(&walk.platform.bounding_box())
+            {
+                walk.boy.land();
             }
 
             if walk
