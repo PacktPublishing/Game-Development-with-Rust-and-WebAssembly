@@ -90,6 +90,10 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.transition(Event::Kill);
     }
 
+    fn land(&mut self) {
+        self.state_machine = self.state_machine.transition(Event::Land);
+    }
+
     fn update(&mut self) {
         self.state_machine = self.state_machine.update();
     }
@@ -150,6 +154,7 @@ pub enum Event {
     Jump,
     Slide,
     Kill,
+    Land,
     Update,
 }
 
@@ -160,6 +165,7 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Running(state), Event::Jump) => state.jump().into(),
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
             (RedHatBoyStateMachine::Running(state), Event::Kill) => state.kill().into(),
+            (RedHatBoyStateMachine::Jumping(state), Event::Land) => state.land().into(),
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Jumping(state), Event::Update) => state.update().into(),
@@ -582,6 +588,14 @@ impl Game for WalkTheDog {
 
             if keystate.is_pressed("ArrowDown") {
                 walk.boy.slide();
+            }
+
+            if walk
+                .boy
+                .bounding_box()
+                .intersects(&walk.platform.bounding_box())
+            {
+                walk.boy.land();
             }
 
             if walk
