@@ -195,6 +195,8 @@ impl RedHatBoyStateMachine {
     fn kill(self) -> Self {
         match self {
             RedHatBoyStateMachine::Running(val) => RedHatBoyStateMachine::Falling(val.into()),
+            RedHatBoyStateMachine::Jumping(val) => RedHatBoyStateMachine::Falling(val.into()),
+            RedHatBoyStateMachine::Sliding(val) => RedHatBoyStateMachine::Falling(val.into()),
             _ => self,
         }
     }
@@ -384,6 +386,24 @@ struct Falling;
 
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Falling> {
     fn from(machine: RedHatBoyState<Running>) -> Self {
+        RedHatBoyState {
+            game_object: machine.game_object.reset_frame().stop(),
+            _state: Falling {},
+        }
+    }
+}
+
+impl From<RedHatBoyState<Sliding>> for RedHatBoyState<Falling> {
+    fn from(machine: RedHatBoyState<Sliding>) -> Self {
+        RedHatBoyState {
+            game_object: machine.game_object.reset_frame().stop(),
+            _state: Falling {},
+        }
+    }
+}
+
+impl From<RedHatBoyState<Jumping>> for RedHatBoyState<Falling> {
+    fn from(machine: RedHatBoyState<Jumping>) -> Self {
         RedHatBoyState {
             game_object: machine.game_object.reset_frame().stop(),
             _state: Falling {},
