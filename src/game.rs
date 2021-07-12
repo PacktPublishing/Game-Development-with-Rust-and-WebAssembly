@@ -9,6 +9,8 @@ use crate::{
 };
 
 const FLOOR: i16 = 479;
+const HEIGHT: i16 = 600;
+const HEIGHT_OFFSET: i16 = HEIGHT - FLOOR;
 const STARTING_POINT: i16 = -20;
 const IDLE_FRAMES: u8 = 29;
 const RUNNING_FRAMES: u8 = 23;
@@ -105,8 +107,9 @@ impl RedHatBoy {
         self.state = self.state.kill();
     }
 
-    fn land(&mut self) {
-        self.state = self.state.land();
+    fn land_on(&mut self, position: f32) {
+        let position = position - HEIGHT_OFFSET as f32;
+        self.state = self.state.land_on(position);
     }
 
     fn update(&mut self) {
@@ -151,6 +154,7 @@ impl RedHatBoy {
         );
     }
 }
+
 #[derive(Copy, Clone)]
 enum RedHatBoyStateMachine {
     Idle(RedHatBoyState<Idle>),
@@ -190,10 +194,32 @@ impl RedHatBoyStateMachine {
         }
     }
 
-    fn land(self) -> Self {
+    fn land_on(self, position: f32) -> Self {
         match self {
-            RedHatBoyStateMachine::Jumping(val) => RedHatBoyStateMachine::Running(val.into()),
-            _ => self,
+            RedHatBoyStateMachine::Jumping(mut state) => {
+                state.game_object = state.game_object.set_on(position as i16);
+                RedHatBoyStateMachine::Running(state.into())
+            }
+            RedHatBoyStateMachine::Idle(mut state) => {
+                state.game_object = state.game_object.set_on(position as i16);
+                RedHatBoyStateMachine::Idle(state.into())
+            }
+            RedHatBoyStateMachine::Running(mut state) => {
+                state.game_object = state.game_object.set_on(position as i16);
+                RedHatBoyStateMachine::Running(state.into())
+            }
+            RedHatBoyStateMachine::Sliding(mut state) => {
+                state.game_object = state.game_object.set_on(position as i16);
+                RedHatBoyStateMachine::Sliding(state.into())
+            }
+            RedHatBoyStateMachine::Falling(mut state) => {
+                state.game_object = state.game_object.set_on(position as i16);
+                RedHatBoyStateMachine::Falling(state.into())
+            }
+            RedHatBoyStateMachine::KnockedOut(mut state) => {
+                state.game_object = state.game_object.set_on(position as i16);
+                RedHatBoyStateMachine::KnockedOut(state.into())
+            }
         }
     }
 
@@ -418,6 +444,11 @@ impl GameObject {
         self.velocity.x = 0;
         self
     }
+
+    fn set_on(mut self, position: i16) -> Self {
+        self.position.y = position;
+        self
+    }
 }
 
 pub enum WalkTheDog {
@@ -492,7 +523,7 @@ impl Game for WalkTheDog {
                 .bounding_box()
                 .intersects(&walk.platform.bounding_box())
             {
-                walk.boy.land();
+                walk.boy.land_on(walk.platform.bounding_box().y);
             }
 
             if walk
