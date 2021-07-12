@@ -9,6 +9,10 @@ use crate::{
     engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 
+const FLOOR: i16 = 479;
+const HEIGHT: i16 = 600;
+const HEIGHT_OFFSET: i16 = HEIGHT - FLOOR;
+
 struct Platform {
     sheet: Sheet,
     image: HtmlImageElement,
@@ -90,8 +94,9 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.transition(Event::Kill);
     }
 
-    fn land(&mut self) {
-        self.state_machine = self.state_machine.transition(Event::Land);
+    fn land_on(&mut self, position: f32) {
+        let position = position - HEIGHT_OFFSET as f32;
+        self.state_machine = self.state_machine.transition(Event::Land(position));
     }
 
     fn update(&mut self) {
@@ -154,7 +159,7 @@ pub enum Event {
     Jump,
     Slide,
     Kill,
-    Land,
+    Land(f32),
     Update,
 }
 
@@ -165,7 +170,9 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Running(state), Event::Jump) => state.jump().into(),
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
             (RedHatBoyStateMachine::Running(state), Event::Kill) => state.kill().into(),
-            (RedHatBoyStateMachine::Jumping(state), Event::Land) => state.land().into(),
+            (RedHatBoyStateMachine::Jumping(state), Event::Land(position)) => {
+                state.land(position).into()
+            }
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Jumping(state), Event::Update) => state.update().into(),
@@ -267,9 +274,9 @@ impl From<FallingEndState> for RedHatBoyStateMachine {
 }
 
 mod red_hat_boy_states {
+    use super::FLOOR;
     use crate::engine::Point;
 
-    const FLOOR: i16 = 479;
     const STARTING_POINT: i16 = -20;
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
@@ -388,15 +395,15 @@ mod red_hat_boy_states {
             self.update_context(JUMPING_FRAMES);
 
             if self.context.position.y >= FLOOR {
-                JumpingEndState::Landing(self.land())
+                JumpingEndState::Landing(self.land(FLOOR.into()))
             } else {
                 JumpingEndState::Jumping(self)
             }
         }
 
-        pub fn land(self) -> RedHatBoyState<Running> {
+        pub fn land(self, position: f32) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context.reset_frame(),
+                context: self.context.set_on(position as i16).reset_frame(),
                 _state: Running {},
             }
         }
@@ -522,6 +529,11 @@ mod red_hat_boy_states {
             self.velocity.x = 0;
             self
         }
+
+        fn set_on(mut self, position: i16) -> Self {
+            self.position.y = position;
+            self
+        }
     }
 }
 
@@ -597,7 +609,7 @@ impl Game for WalkTheDog {
                 .bounding_box()
                 .intersects(&walk.platform.bounding_box())
             {
-                walk.boy.land();
+                walk.boy.land_on(walk.platform.bounding_box().y);
             }
 
             if walk
