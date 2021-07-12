@@ -25,6 +25,7 @@ const JUMPING_FRAME_NAME: &str = "Jump";
 const FALLING_FRAME_NAME: &str = "Dead";
 const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
+const TERMINAL_VELOCITY: i16 = 20;
 
 struct Platform {
     sheet: Sheet,
@@ -114,6 +115,10 @@ impl RedHatBoy {
 
     fn update(&mut self) {
         self.state = self.state.update();
+    }
+
+    fn pos_y(&self) -> i16 {
+        self.state.game_object().position.y
     }
 
     fn frame_name(&self) -> String {
@@ -407,7 +412,9 @@ struct GameObject {
 
 impl GameObject {
     fn update(mut self, frame_count: u8) -> Self {
-        self.velocity.y += GRAVITY;
+        if self.velocity.y < TERMINAL_VELOCITY {
+            self.velocity.y += GRAVITY;
+        }
 
         if self.frame < frame_count {
             self.frame += 1;
@@ -523,7 +530,11 @@ impl Game for WalkTheDog {
                 .bounding_box()
                 .intersects(&walk.platform.bounding_box())
             {
-                walk.boy.land_on(walk.platform.bounding_box().y);
+                if walk.boy.pos_y() < walk.platform.position.y {
+                    walk.boy.land_on(walk.platform.bounding_box().y);
+                } else {
+                    walk.boy.kill();
+                }
             }
 
             if walk
