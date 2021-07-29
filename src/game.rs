@@ -555,8 +555,14 @@ impl Game for WalkTheDog {
 
             walk.platform.position.x += walk.velocity;
             walk.stone.move_horizontally(walk.velocity);
-            for (_, background) in walk.backgrounds.iter_mut().enumerate() {
-                background.move_horizontally(walk.velocity);
+            let [first_background, second_background] = &mut walk.backgrounds;
+            first_background.move_horizontally(walk.velocity);
+            second_background.move_horizontally(walk.velocity);
+            if first_background.right() < 0.0 {
+                first_background.set_x(second_background.right() as i16);
+            }
+            if second_background.right() < 0.0 {
+                second_background.set_x(first_background.right() as i16);
             }
 
             if walk
