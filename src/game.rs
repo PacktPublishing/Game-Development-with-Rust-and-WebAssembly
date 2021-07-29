@@ -622,7 +622,7 @@ pub enum WalkTheDog {
 
 pub struct Walk {
     boy: RedHatBoy,
-    background: Image,
+    backgrounds: [Image; 2],
     stone: Image,
     platform: Platform,
     velocity: i16,
@@ -659,9 +659,19 @@ impl Game for WalkTheDog {
 
                 let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
 
+                let background_width = background.width() as i16;
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
                     boy: rhb,
-                    background: Image::new(background, Point { x: 0, y: 0 }),
+                    backgrounds: [
+                        Image::new(background.clone(), Point { x: 0, y: 0 }),
+                        Image::new(
+                            background,
+                            Point {
+                                x: background_width,
+                                y: 0,
+                            },
+                        ),
+                    ],
                     stone: Image::new(stone, Point { x: 150, y: 546 }),
                     platform,
                     velocity: 0,
@@ -690,6 +700,9 @@ impl Game for WalkTheDog {
 
             walk.platform.position.x += walk.velocity;
             walk.stone.move_horizontally(walk.velocity);
+            for (_, background) in walk.backgrounds.iter_mut().enumerate() {
+                background.move_horizontally(walk.velocity);
+            }
 
             for bounding_box in &walk.platform.bounding_boxes() {
                 if walk.boy.bounding_box().intersects(bounding_box) {
@@ -720,7 +733,9 @@ impl Game for WalkTheDog {
         });
 
         if let WalkTheDog::Loaded(walk) = self {
-            walk.background.draw(renderer);
+            for (_, background) in walk.backgrounds.iter().enumerate() {
+                background.draw(renderer);
+            }
             walk.boy.draw(renderer);
             walk.stone.draw(renderer);
             walk.platform.draw(renderer);
