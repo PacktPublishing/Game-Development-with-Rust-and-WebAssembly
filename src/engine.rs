@@ -280,6 +280,15 @@ impl Image {
     }
 
     pub fn move_horizontally(&mut self, distance: i16) {
-        self.position.x += distance;
+        self.set_x(self.position.x + distance);
+    }
+
+    pub fn set_x(&mut self, x: i16) {
+        self.bounding_box.x = x as f32;
+        self.position.x = x;
+    }
+
+    pub fn right(&self) -> f32 {
+        self.bounding_box.x + self.bounding_box.width
     }
 }
