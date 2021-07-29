@@ -259,6 +259,10 @@ impl Image {
     pub fn bounding_box(&self) -> &Rect {
         &self.bounding_box
     }
+
+    pub fn move_horizontally(&mut self, distance: i16) {
+        self.position.x += distance;
+    }
 }
 
 #[derive(Deserialize, Debug)]

@@ -324,7 +324,7 @@ struct Running;
 
 impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Idle>) -> Self {
-        machine.game_object = machine.game_object.reset_frame().run_right();
+        machine.game_object = machine.game_object.reset_frame();
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Running {},
@@ -462,11 +462,6 @@ impl GameObject {
         self
     }
 
-    fn run_right(mut self) -> Self {
-        self.velocity.x += RUNNING_SPEED;
-        self
-    }
-
     fn stop(mut self) -> Self {
         self.velocity.x = 0;
         self
@@ -488,6 +483,7 @@ struct Walk {
     background: Image,
     stone: Image,
     platform: Platform,
+    velocity: i16,
 }
 
 impl WalkTheDog {
@@ -523,6 +519,7 @@ impl Game for WalkTheDog {
                     background: Image::new(background, Point { x: 0, y: 0 }),
                     stone: Image::new(stone, Point { x: 150, y: 546 }),
                     platform,
+                    velocity: 0,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -532,6 +529,7 @@ impl Game for WalkTheDog {
     fn update(&mut self, keystate: &KeyState) {
         if let WalkTheDog::Loaded(walk) = self {
             if keystate.is_pressed("ArrowRight") {
+                walk.velocity = -RUNNING_SPEED;
                 walk.boy.run_right();
             }
 
@@ -544,6 +542,9 @@ impl Game for WalkTheDog {
             }
 
             walk.boy.update();
+
+            walk.platform.position.x += walk.velocity;
+            walk.stone.move_horizontally(walk.velocity);
 
             if walk
                 .boy
