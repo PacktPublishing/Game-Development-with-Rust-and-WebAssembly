@@ -739,9 +739,9 @@ impl Game for WalkTheDog {
         });
 
         if let WalkTheDog::Loaded(walk) = self {
-            for (_, background) in walk.backgrounds.iter().enumerate() {
+            walk.backgrounds.iter().for_each(|background| {
                 background.draw(renderer);
-            }
+            });
             walk.boy.draw(renderer);
             walk.stone.draw(renderer);
             walk.platform.draw(renderer);
