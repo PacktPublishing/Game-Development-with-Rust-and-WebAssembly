@@ -9,6 +9,7 @@ use crate::{
 };
 
 const HEIGHT: i16 = 600;
+const RUNNING_SPEED: i16 = 4;
 
 struct Platform {
     sheet: Sheet,
@@ -337,7 +338,6 @@ mod red_hat_boy_states {
     const JUMPING_FRAMES: u8 = 35;
     const SLIDING_FRAMES: u8 = 14;
     const FALLING_FRAMES: u8 = 29;
-    const RUNNING_SPEED: i16 = 4;
     const IDLE_FRAME_NAME: &str = "Idle";
     const RUN_FRAME_NAME: &str = "Run";
     const SLIDING_FRAME_NAME: &str = "Slide";
@@ -392,7 +392,7 @@ mod red_hat_boy_states {
 
         pub fn run(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context.reset_frame().run_right(),
+                context: self.context.reset_frame(),
                 _state: Running {},
             }
         }
@@ -601,11 +601,6 @@ mod red_hat_boy_states {
             self
         }
 
-        fn run_right(mut self) -> Self {
-            self.velocity.x += RUNNING_SPEED;
-            self
-        }
-
         fn stop(mut self) -> Self {
             self.velocity.x = 0;
             self.velocity.y = 0;
@@ -630,6 +625,7 @@ pub struct Walk {
     background: Image,
     stone: Image,
     platform: Platform,
+    velocity: i16,
 }
 
 impl WalkTheDog {
@@ -668,6 +664,7 @@ impl Game for WalkTheDog {
                     background: Image::new(background, Point { x: 0, y: 0 }),
                     stone: Image::new(stone, Point { x: 150, y: 546 }),
                     platform,
+                    velocity: 0,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -677,6 +674,7 @@ impl Game for WalkTheDog {
     fn update(&mut self, keystate: &KeyState) {
         if let WalkTheDog::Loaded(walk) = self {
             if keystate.is_pressed("ArrowRight") {
+                walk.velocity = -RUNNING_SPEED;
                 walk.boy.run_right();
             }
 
@@ -689,6 +687,9 @@ impl Game for WalkTheDog {
             }
 
             walk.boy.update();
+
+            walk.platform.position.x += walk.velocity;
+            walk.stone.move_horizontally(walk.velocity);
 
             for bounding_box in &walk.platform.bounding_boxes() {
                 if walk.boy.bounding_box().intersects(bounding_box) {
