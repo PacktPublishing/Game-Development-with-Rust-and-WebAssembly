@@ -558,6 +558,7 @@ impl Game for WalkTheDog {
             let [first_background, second_background] = &mut walk.backgrounds;
             first_background.move_horizontally(walk.velocity);
             second_background.move_horizontally(walk.velocity);
+
             if first_background.right() < 0.0 {
                 first_background.set_x(second_background.right() as i16);
             }

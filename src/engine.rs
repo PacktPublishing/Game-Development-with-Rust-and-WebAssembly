@@ -25,10 +25,18 @@ pub struct Rect {
 
 impl Rect {
     pub fn intersects(&self, rect: &Rect) -> bool {
-        self.x < (rect.x + rect.width)
-            && self.x + self.width > rect.x
-            && self.y < (rect.y + rect.height)
-            && self.y + self.height > rect.y
+        self.x < rect.right()
+            && self.right() > rect.x
+            && self.y < rect.bottom()
+            && self.bottom() > rect.y
+    }
+
+    pub fn right(&self) -> f32 {
+        self.x + self.width
+    }
+
+    pub fn bottom(&self) -> f32 {
+        self.y + self.height
     }
 }
 
@@ -270,7 +278,7 @@ impl Image {
     }
 
     pub fn right(&self) -> f32 {
-        self.bounding_box.x + self.bounding_box.width
+        self.bounding_box.right()
     }
 }
 
