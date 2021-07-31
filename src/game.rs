@@ -52,10 +52,10 @@ impl Platform {
         renderer.draw_image(
             &self.image,
             &Rect {
-                x: platform.frame.x.into(),
-                y: platform.frame.y.into(),
-                width: (platform.frame.w * 3).into(),
-                height: platform.frame.h.into(),
+                x: platform.frame.x,
+                y: platform.frame.y,
+                width: platform.frame.w * 3,
+                height: platform.frame.h,
             },
             &self.bounding_box(),
         );
@@ -69,10 +69,10 @@ impl Platform {
             .expect("13.png does not exist");
 
         Rect {
-            x: self.position.x.into(),
-            y: self.position.y.into(),
-            width: (platform.frame.w * 3).into(),
-            height: platform.frame.h.into(),
+            x: self.position.x,
+            y: self.position.y,
+            width: platform.frame.w * 3,
+            height: platform.frame.h,
         }
     }
 }
@@ -108,8 +108,8 @@ impl RedHatBoy {
         self.state = self.state.kill();
     }
 
-    fn land_on(&mut self, position: f32) {
-        let position = position - HEIGHT_OFFSET as f32;
+    fn land_on(&mut self, position: i16) {
+        let position = position - HEIGHT_OFFSET;
         self.state = self.state.land_on(position);
     }
 
@@ -137,10 +137,10 @@ impl RedHatBoy {
         let sprite = self.current_sprite().expect("Cell not found");
 
         Rect {
-            x: (self.state.game_object().position.x + sprite.sprite_source_size.x as i16).into(),
-            y: (self.state.game_object().position.y + sprite.sprite_source_size.y as i16).into(),
-            width: sprite.frame.w.into(),
-            height: sprite.frame.h.into(),
+            x: self.state.game_object().position.x + sprite.sprite_source_size.x,
+            y: self.state.game_object().position.y + sprite.sprite_source_size.y,
+            width: sprite.frame.w,
+            height: sprite.frame.h,
         }
     }
 
@@ -150,10 +150,10 @@ impl RedHatBoy {
         renderer.draw_image(
             &self.image,
             &Rect {
-                x: sprite.frame.x.into(),
-                y: sprite.frame.y.into(),
-                width: sprite.frame.w.into(),
-                height: sprite.frame.h.into(),
+                x: sprite.frame.x,
+                y: sprite.frame.y,
+                width: sprite.frame.w,
+                height: sprite.frame.h,
             },
             &self.bounding_box(),
         );
@@ -201,30 +201,30 @@ impl RedHatBoyStateMachine {
         }
     }
 
-    fn land_on(self, position: f32) -> Self {
+    fn land_on(self, position: i16) -> Self {
         match self {
             RedHatBoyStateMachine::Jumping(mut state) => {
-                state.game_object = state.game_object.set_on(position as i16);
+                state.game_object = state.game_object.set_on(position);
                 RedHatBoyStateMachine::Running(state.into())
             }
             RedHatBoyStateMachine::Idle(mut state) => {
-                state.game_object = state.game_object.set_on(position as i16);
+                state.game_object = state.game_object.set_on(position);
                 RedHatBoyStateMachine::Idle(state.into())
             }
             RedHatBoyStateMachine::Running(mut state) => {
-                state.game_object = state.game_object.set_on(position as i16);
+                state.game_object = state.game_object.set_on(position);
                 RedHatBoyStateMachine::Running(state.into())
             }
             RedHatBoyStateMachine::Sliding(mut state) => {
-                state.game_object = state.game_object.set_on(position as i16);
+                state.game_object = state.game_object.set_on(position);
                 RedHatBoyStateMachine::Sliding(state.into())
             }
             RedHatBoyStateMachine::Falling(mut state) => {
-                state.game_object = state.game_object.set_on(position as i16);
+                state.game_object = state.game_object.set_on(position);
                 RedHatBoyStateMachine::Falling(state.into())
             }
             RedHatBoyStateMachine::KnockedOut(mut state) => {
-                state.game_object = state.game_object.set_on(position as i16);
+                state.game_object = state.game_object.set_on(position);
                 RedHatBoyStateMachine::KnockedOut(state.into())
             }
         }
@@ -559,11 +559,11 @@ impl Game for WalkTheDog {
             first_background.move_horizontally(walk.velocity);
             second_background.move_horizontally(walk.velocity);
 
-            if first_background.right() < 0.0 {
-                first_background.set_x(second_background.right() as i16);
+            if first_background.right() < 0 {
+                first_background.set_x(second_background.right());
             }
-            if second_background.right() < 0.0 {
-                second_background.set_x(first_background.right() as i16);
+            if second_background.right() < 0 {
+                second_background.set_x(first_background.right());
             }
 
             if walk
@@ -590,10 +590,10 @@ impl Game for WalkTheDog {
 
     fn draw(&self, renderer: &Renderer) {
         renderer.clear(&Rect {
-            x: 0.0,
-            y: 0.0,
-            width: 600.0,
-            height: 600.0,
+            x: 0,
+            y: 0,
+            width: 600,
+            height: 600,
         });
 
         if let WalkTheDog::Loaded(walk) = self {
