@@ -569,6 +569,7 @@ impl Game for WalkTheDog {
                 if walk.boy.pos_y() < walk.platform.position.y {
                     walk.boy.land_on(walk.platform.bounding_box().y());
                 } else {
+                    walk.velocity = 0;
                     walk.boy.kill();
                 }
             }
@@ -578,6 +579,7 @@ impl Game for WalkTheDog {
                 .bounding_box()
                 .intersects(walk.stone.bounding_box())
             {
+                walk.velocity = 0;
                 walk.boy.kill()
             }
         }
