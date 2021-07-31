@@ -51,12 +51,12 @@ impl Platform {
 
         renderer.draw_image(
             &self.image,
-            &Rect {
-                x: platform.frame.x,
-                y: platform.frame.y,
-                width: platform.frame.w * 3,
-                height: platform.frame.h,
-            },
+            &Rect::new_from_x_y(
+                platform.frame.x,
+                platform.frame.y,
+                platform.frame.w * 3,
+                platform.frame.h,
+            ),
             &self.bounding_box(),
         );
     }
@@ -68,12 +68,7 @@ impl Platform {
             .get("13.png")
             .expect("13.png does not exist");
 
-        Rect {
-            x: self.position.x,
-            y: self.position.y,
-            width: platform.frame.w * 3,
-            height: platform.frame.h,
-        }
+        Rect::new(self.position, platform.frame.w * 3, platform.frame.h)
     }
 }
 
@@ -136,12 +131,12 @@ impl RedHatBoy {
     fn bounding_box(&self) -> Rect {
         let sprite = self.current_sprite().expect("Cell not found");
 
-        Rect {
-            x: self.state.game_object().position.x + sprite.sprite_source_size.x,
-            y: self.state.game_object().position.y + sprite.sprite_source_size.y,
-            width: sprite.frame.w,
-            height: sprite.frame.h,
-        }
+        Rect::new_from_x_y(
+            self.state.game_object().position.x + sprite.sprite_source_size.x,
+            self.state.game_object().position.y + sprite.sprite_source_size.y,
+            sprite.frame.w,
+            sprite.frame.h,
+        )
     }
 
     fn draw(&self, renderer: &Renderer) {
@@ -149,12 +144,12 @@ impl RedHatBoy {
 
         renderer.draw_image(
             &self.image,
-            &Rect {
-                x: sprite.frame.x,
-                y: sprite.frame.y,
-                width: sprite.frame.w,
-                height: sprite.frame.h,
-            },
+            &Rect::new_from_x_y(
+                sprite.frame.x,
+                sprite.frame.y,
+                sprite.frame.w,
+                sprite.frame.h,
+            ),
             &self.bounding_box(),
         );
     }
@@ -572,7 +567,7 @@ impl Game for WalkTheDog {
                 .intersects(&walk.platform.bounding_box())
             {
                 if walk.boy.pos_y() < walk.platform.position.y {
-                    walk.boy.land_on(walk.platform.bounding_box().y);
+                    walk.boy.land_on(walk.platform.bounding_box().y());
                 } else {
                     walk.boy.kill();
                 }
@@ -589,12 +584,7 @@ impl Game for WalkTheDog {
     }
 
     fn draw(&self, renderer: &Renderer) {
-        renderer.clear(&Rect {
-            x: 0,
-            y: 0,
-            width: 600,
-            height: 600,
-        });
+        renderer.clear(&Rect::new(Point { x: 0, y: 0 }, 600, 600));
 
         if let WalkTheDog::Loaded(walk) = self {
             walk.backgrounds.iter().for_each(|background| {
