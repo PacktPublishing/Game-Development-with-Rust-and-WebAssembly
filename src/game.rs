@@ -27,6 +27,12 @@ const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
 const TERMINAL_VELOCITY: i16 = 20;
 
+trait Obstacle {
+    fn check_intersection(&self, walk: &mut RedHatBoy);
+    fn draw(&self, renderer: &Renderer);
+    fn move_horizontally(&mut self, x: i16);
+}
+
 struct Platform {
     sheet: Sheet,
     image: HtmlImageElement,
@@ -39,6 +45,27 @@ impl Platform {
             sheet,
             image,
             position,
+        }
+    }
+    fn bounding_box(&self) -> Rect {
+        let platform = self
+            .sheet
+            .frames
+            .get("13.png")
+            .expect("13.png does not exist");
+
+        Rect::new(self.position, platform.frame.w * 3, platform.frame.h)
+    }
+}
+
+impl Obstacle for Platform {
+    fn check_intersection(&self, boy: &mut RedHatBoy) {
+        if boy.bounding_box().intersects(&self.bounding_box()) {
+            if boy.pos_y() < self.position.y {
+                boy.land_on(self.bounding_box().y());
+            } else {
+                boy.kill();
+            }
         }
     }
 
@@ -61,14 +88,8 @@ impl Platform {
         );
     }
 
-    fn bounding_box(&self) -> Rect {
-        let platform = self
-            .sheet
-            .frames
-            .get("13.png")
-            .expect("13.png does not exist");
-
-        Rect::new(self.position, platform.frame.w * 3, platform.frame.h)
+    fn move_horizontally(&mut self, x: i16) {
+        self.position.x += x;
     }
 }
 
@@ -485,7 +506,7 @@ struct Walk {
     boy: RedHatBoy,
     backgrounds: [Image; 2],
     stone: Image,
-    platform: Platform,
+    platform: Box<dyn Obstacle>,
 }
 
 impl WalkTheDog {
@@ -530,7 +551,7 @@ impl Game for WalkTheDog {
                         ),
                     ],
                     stone: Image::new(stone, Point { x: 150, y: 546 }),
-                    platform,
+                    platform: Box::new(platform),
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -554,7 +575,7 @@ impl Game for WalkTheDog {
             walk.boy.update();
 
             let walking_speed = walk.velocity();
-            walk.platform.position.x += walking_speed;
+            walk.platform.move_horizontally(walking_speed);
             walk.stone.move_horizontally(walking_speed);
 
             let [first_background, second_background] = &mut walk.backgrounds;
@@ -568,17 +589,7 @@ impl Game for WalkTheDog {
                 second_background.set_x(first_background.right());
             }
 
-            if walk
-                .boy
-                .bounding_box()
-                .intersects(&walk.platform.bounding_box())
-            {
-                if walk.boy.pos_y() < walk.platform.position.y {
-                    walk.boy.land_on(walk.platform.bounding_box().y());
-                } else {
-                    walk.boy.kill();
-                }
-            }
+            walk.platform.check_intersection(&mut walk.boy);
 
             if walk
                 .boy
