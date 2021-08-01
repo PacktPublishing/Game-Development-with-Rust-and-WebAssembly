@@ -116,6 +116,10 @@ impl RedHatBoy {
         self.state.game_object().position.y
     }
 
+    fn walking_speed(&self) -> i16 {
+        self.state.game_object().velocity.x
+    }
+
     fn frame_name(&self) -> String {
         format!(
             "{} ({}).png",
@@ -319,7 +323,7 @@ struct Running;
 
 impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Idle>) -> Self {
-        machine.game_object = machine.game_object.reset_frame();
+        machine.game_object = machine.game_object.reset_frame().run_right();
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Running {},
@@ -437,7 +441,6 @@ impl GameObject {
             self.frame = 0;
         }
 
-        self.position.x += self.velocity.x;
         self.position.y += self.velocity.y;
 
         if self.position.y > FLOOR {
@@ -454,6 +457,11 @@ impl GameObject {
 
     fn set_vertical_velocity(mut self, y: i16) -> Self {
         self.velocity.y = y;
+        self
+    }
+
+    fn run_right(mut self) -> Self {
+        self.velocity.x += RUNNING_SPEED;
         self
     }
 
@@ -478,7 +486,6 @@ struct Walk {
     backgrounds: [Image; 2],
     stone: Image,
     platform: Platform,
-    velocity: i16,
 }
 
 impl WalkTheDog {
@@ -524,7 +531,6 @@ impl Game for WalkTheDog {
                     ],
                     stone: Image::new(stone, Point { x: 150, y: 546 }),
                     platform,
-                    velocity: 0,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -534,7 +540,6 @@ impl Game for WalkTheDog {
     fn update(&mut self, keystate: &KeyState) {
         if let WalkTheDog::Loaded(walk) = self {
             if keystate.is_pressed("ArrowRight") {
-                walk.velocity = -RUNNING_SPEED;
                 walk.boy.run_right();
             }
 
@@ -548,11 +553,13 @@ impl Game for WalkTheDog {
 
             walk.boy.update();
 
-            walk.platform.position.x += walk.velocity;
-            walk.stone.move_horizontally(walk.velocity);
+            let walking_speed = walk.velocity();
+            walk.platform.position.x += walking_speed;
+            walk.stone.move_horizontally(walking_speed);
+
             let [first_background, second_background] = &mut walk.backgrounds;
-            first_background.move_horizontally(walk.velocity);
-            second_background.move_horizontally(walk.velocity);
+            first_background.move_horizontally(walking_speed);
+            second_background.move_horizontally(walking_speed);
 
             if first_background.right() < 0 {
                 first_background.set_x(second_background.right());
@@ -569,7 +576,6 @@ impl Game for WalkTheDog {
                 if walk.boy.pos_y() < walk.platform.position.y {
                     walk.boy.land_on(walk.platform.bounding_box().y());
                 } else {
-                    walk.velocity = 0;
                     walk.boy.kill();
                 }
             }
@@ -579,7 +585,6 @@ impl Game for WalkTheDog {
                 .bounding_box()
                 .intersects(walk.stone.bounding_box())
             {
-                walk.velocity = 0;
                 walk.boy.kill()
             }
         }
@@ -596,5 +601,11 @@ impl Game for WalkTheDog {
             walk.stone.draw(renderer);
             walk.platform.draw(renderer);
         }
+    }
+}
+
+impl Walk {
+    fn velocity(&self) -> i16 {
+        -self.boy.walking_speed()
     }
 }
