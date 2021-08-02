@@ -28,9 +28,10 @@ const GRAVITY: i16 = 1;
 const TERMINAL_VELOCITY: i16 = 20;
 
 trait Obstacle {
-    fn check_intersection(&self, walk: &mut RedHatBoy);
+    fn check_intersection(&self, boy: &mut RedHatBoy);
     fn draw(&self, renderer: &Renderer);
     fn move_horizontally(&mut self, x: i16);
+    fn right(&self) -> i16;
 }
 
 struct Platform {
@@ -90,6 +91,10 @@ impl Obstacle for Platform {
 
     fn move_horizontally(&mut self, x: i16) {
         self.position.x += x;
+    }
+
+    fn right(&self) -> i16 {
+        self.bounding_box().right()
     }
 }
 
@@ -485,7 +490,6 @@ impl GameObject {
         self.velocity.x += RUNNING_SPEED;
         self
     }
-
     fn stop(mut self) -> Self {
         self.velocity.x = 0;
         self
@@ -505,13 +509,42 @@ pub enum WalkTheDog {
 struct Walk {
     boy: RedHatBoy,
     backgrounds: [Image; 2],
-    stone: Image,
-    platform: Box<dyn Obstacle>,
+    obstacles: Vec<Box<dyn Obstacle>>,
 }
 
 impl WalkTheDog {
     pub fn new() -> Self {
         WalkTheDog::Loading {}
+    }
+}
+
+struct Killer {
+    image: Image,
+}
+
+impl Killer {
+    fn new(image: Image) -> Self {
+        Killer { image }
+    }
+}
+
+impl Obstacle for Killer {
+    fn check_intersection(&self, boy: &mut RedHatBoy) {
+        if boy.bounding_box().intersects(self.image.bounding_box()) {
+            boy.kill()
+        }
+    }
+
+    fn draw(&self, renderer: &Renderer) {
+        self.image.draw(renderer);
+    }
+
+    fn move_horizontally(&mut self, x: i16) {
+        self.image.move_horizontally(x);
+    }
+
+    fn right(&self) -> i16 {
+        self.image.right()
     }
 }
 
@@ -550,8 +583,10 @@ impl Game for WalkTheDog {
                             },
                         ),
                     ],
-                    stone: Image::new(stone, Point { x: 150, y: 546 }),
-                    platform: Box::new(platform),
+                    obstacles: vec![
+                        Box::new(Killer::new(Image::new(stone, Point { x: 150, y: 546 }))),
+                        Box::new(platform),
+                    ],
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -575,9 +610,6 @@ impl Game for WalkTheDog {
             walk.boy.update();
 
             let walking_speed = walk.velocity();
-            walk.platform.move_horizontally(walking_speed);
-            walk.stone.move_horizontally(walking_speed);
-
             let [first_background, second_background] = &mut walk.backgrounds;
             first_background.move_horizontally(walking_speed);
             second_background.move_horizontally(walking_speed);
@@ -589,14 +621,11 @@ impl Game for WalkTheDog {
                 second_background.set_x(first_background.right());
             }
 
-            walk.platform.check_intersection(&mut walk.boy);
+            walk.obstacles.retain(|obstacle| obstacle.right() > 0);
 
-            if walk
-                .boy
-                .bounding_box()
-                .intersects(walk.stone.bounding_box())
-            {
-                walk.boy.kill()
+            for (_, obstacle) in walk.obstacles.iter_mut().enumerate() {
+                obstacle.move_horizontally(walking_speed);
+                obstacle.check_intersection(&mut walk.boy);
             }
         }
     }
@@ -609,8 +638,10 @@ impl Game for WalkTheDog {
                 background.draw(renderer);
             });
             walk.boy.draw(renderer);
-            walk.stone.draw(renderer);
-            walk.platform.draw(renderer);
+
+            walk.obstacles.iter().for_each(|obstacle| {
+                obstacle.draw(renderer);
+            });
         }
     }
 }
