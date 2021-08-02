@@ -30,12 +30,13 @@ pub struct Sheet {
     pub frames: HashMap<String, Cell>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct Point {
     pub x: i16,
     pub y: i16,
 }
 
+#[derive(Default)]
 pub struct Rect {
     pub position: Point,
     pub width: i16,
