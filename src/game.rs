@@ -5,7 +5,7 @@ use web_sys::HtmlImageElement;
 
 use crate::{
     browser,
-    engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet},
+    engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet, SpriteSheet},
 };
 
 const FLOOR: i16 = 479;
@@ -35,25 +35,17 @@ trait Obstacle {
 }
 
 struct Platform {
-    sheet: Sheet,
-    image: HtmlImageElement,
+    sheet: SpriteSheet,
     position: Point,
 }
 
 impl Platform {
-    fn new(sheet: Sheet, image: HtmlImageElement, position: Point) -> Self {
-        Platform {
-            sheet,
-            image,
-            position,
-        }
+    fn new(sheet: SpriteSheet, position: Point) -> Self {
+        Platform { sheet, position }
     }
+
     fn bounding_box(&self) -> Rect {
-        let platform = self
-            .sheet
-            .frames
-            .get("13.png")
-            .expect("13.png does not exist");
+        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
 
         Rect::new(self.position, platform.frame.w * 3, platform.frame.h)
     }
@@ -71,14 +63,10 @@ impl Obstacle for Platform {
     }
 
     fn draw(&self, renderer: &Renderer) {
-        let platform = self
-            .sheet
-            .frames
-            .get("13.png")
-            .expect("13.png does not exist");
+        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
 
-        renderer.draw_image(
-            &self.image,
+        self.sheet.draw(
+            renderer,
             &Rect::new_from_x_y(
                 platform.frame.x,
                 platform.frame.y,
@@ -560,8 +548,10 @@ impl Game for WalkTheDog {
                 let platform_sheet = browser::fetch_json("tiles.json").await?;
 
                 let platform = Platform::new(
-                    platform_sheet.into_serde::<Sheet>()?,
-                    engine::load_image("tiles.png").await?,
+                    SpriteSheet::new(
+                        platform_sheet.into_serde::<Sheet>()?,
+                        engine::load_image("tiles.png").await?,
+                    ),
                     Point { x: 200, y: 400 },
                 );
 
