@@ -699,14 +699,6 @@ impl Game for WalkTheDog {
                     engine::load_image("tiles.png").await?,
                 ));
 
-                let platform = Platform::new(
-                    sprite_sheet.clone(),
-                    Point {
-                        x: FIRST_PLATFORM,
-                        y: LOW_PLATFORM,
-                    },
-                );
-
                 let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
 
                 let background_width = background.width() as i16;
@@ -724,7 +716,13 @@ impl Game for WalkTheDog {
                     ],
                     obstacles: vec![
                         Box::new(Killer::new(Image::new(stone, Point { x: 150, y: 546 }))),
-                        Box::new(platform),
+                        Box::new(Platform::new(
+                            sprite_sheet.clone(),
+                            Point {
+                                x: FIRST_PLATFORM,
+                                y: LOW_PLATFORM,
+                            },
+                        )),
                     ],
                     obstacle_sheet: sprite_sheet,
                 })))
