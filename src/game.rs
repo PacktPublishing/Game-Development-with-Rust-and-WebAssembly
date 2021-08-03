@@ -509,17 +509,17 @@ impl WalkTheDog {
     }
 }
 
-struct Killer {
+struct Barrier {
     image: Image,
 }
 
-impl Killer {
+impl Barrier {
     fn new(image: Image) -> Self {
-        Killer { image }
+        Barrier { image }
     }
 }
 
-impl Obstacle for Killer {
+impl Obstacle for Barrier {
     fn check_intersection(&self, boy: &mut RedHatBoy) {
         if boy.bounding_box().intersects(self.image.bounding_box()) {
             boy.kill()
@@ -574,7 +574,7 @@ impl Game for WalkTheDog {
                         ),
                     ],
                     obstacles: vec![
-                        Box::new(Killer::new(Image::new(stone, Point { x: 150, y: 546 }))),
+                        Box::new(Barrier::new(Image::new(stone, Point { x: 150, y: 546 }))),
                         Box::new(Platform::new(
                             sprite_sheet.clone(),
                             Point { x: 200, y: 400 },
