@@ -21,49 +21,50 @@ trait Obstacle {
 
 struct Platform {
     sheet: Rc<SpriteSheet>,
-    position: Point,
+    bounding_boxes: Vec<Rect>,
+    destination_box: Rect,
+    sprites: Vec<String>,
 }
 
 impl Platform {
-    fn new(sheet: Rc<SpriteSheet>, position: Point) -> Self {
-        Platform { sheet, position }
+    fn new(sheet: Rc<SpriteSheet>, position: Point, sprites: Vec<String>) -> Self {
+        let height = sprites
+            .first()
+            .and_then(|first_sprite| sheet.cell(first_sprite))
+            .map_or(0, |cell| cell.frame.w);
+
+        let width: i16 = sprites
+            .iter()
+            .filter_map(|sprite| sheet.cell(sprite))
+            .map(|cell| cell.frame.w)
+            .sum();
+
+        Platform {
+            sheet: sheet.clone(),
+            destination_box: Rect::new(position, width, height),
+            bounding_boxes: vec![Rect::new(position, width, height)],
+            sprites,
+        }
     }
 
-    fn bounding_boxes(&self) -> Vec<Rect> {
-        const X_OFFSET: i16 = 60;
-        const END_HEIGHT: i16 = 54;
-        let destination_box = self.destination_box();
-        let bounding_box_one = Rect::new(destination_box.position, X_OFFSET, END_HEIGHT);
-
-        let bounding_box_two = Rect::new_from_x_y(
-            destination_box.x() + X_OFFSET,
-            destination_box.y(),
-            destination_box.width - (X_OFFSET * 2),
-            destination_box.height,
-        );
-
-        let bounding_box_three = Rect::new_from_x_y(
-            destination_box.x() + destination_box.width - X_OFFSET,
-            destination_box.y(),
-            X_OFFSET,
-            END_HEIGHT,
-        );
-
-        vec![bounding_box_one, bounding_box_two, bounding_box_three]
+    fn set_bounding_boxes(&mut self, bounding_boxes: Vec<Rect>) {
+        self.bounding_boxes = bounding_boxes;
     }
 
-    fn destination_box(&self) -> Rect {
-        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
+    fn bounding_boxes(&self) -> &Vec<Rect> {
+        &self.bounding_boxes
+    }
 
-        Rect::new(self.position, platform.frame.w * 3, platform.frame.h)
+    fn position(&self) -> &Point {
+        &self.destination_box.position
     }
 }
 
 impl Obstacle for Platform {
     fn check_intersection(&self, boy: &mut RedHatBoy) {
-        for bounding_box in &self.bounding_boxes() {
+        for bounding_box in self.bounding_boxes() {
             if boy.bounding_box().intersects(bounding_box) {
-                if boy.velocity_y() > 0 && boy.pos_y() < self.position.y {
+                if boy.velocity_y() > 0 && boy.pos_y() < self.position().y {
                     boy.land_on(bounding_box.y().into());
                 } else {
                     boy.knock_out();
@@ -73,22 +74,37 @@ impl Obstacle for Platform {
     }
 
     fn draw(&self, renderer: &Renderer) {
-        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
+        let mut x = 0;
+        self.sprites.iter().for_each(move |sprite| {
+            let platform = self
+                .sheet
+                .cell(sprite)
+                .expect("Cell does not exist on draw! Should be impossible!");
 
-        self.sheet.draw(
-            renderer,
-            &Rect::new_from_x_y(
-                platform.frame.x,
-                platform.frame.y,
-                platform.frame.w * 3,
-                platform.frame.h,
-            ),
-            &self.destination_box(),
-        );
+            self.sheet.draw(
+                renderer,
+                &Rect::new_from_x_y(
+                    platform.frame.x,
+                    platform.frame.y,
+                    platform.frame.w,
+                    platform.frame.h,
+                ),
+                &Rect::new_from_x_y(
+                    self.position().x + x,
+                    self.position().y,
+                    platform.frame.w,
+                    platform.frame.h,
+                ),
+            );
+            x += platform.frame.w;
+        });
     }
 
     fn move_horizontally(&mut self, x: i16) {
-        self.position.x += x;
+        self.destination_box.set_x(self.position().x + x);
+        for bounding_box in self.bounding_boxes.iter_mut() {
+            bounding_box.set_x(bounding_box.position.x + x);
+        }
     }
 
     fn right(&self) -> i16 {
@@ -683,6 +699,29 @@ const LOW_PLATFORM: i16 = 420;
 const HIGH_PLATFORM: i16 = 375;
 const FIRST_PLATFORM: i16 = 370;
 
+fn create_platform_bounding_boxes(destination_box: &Rect) -> Vec<Rect> {
+    const X_OFFSET: i16 = 60;
+    const END_HEIGHT: i16 = 54;
+    let destination_box = destination_box;
+    let bounding_box_one = Rect::new(destination_box.position, X_OFFSET, END_HEIGHT);
+
+    let bounding_box_two = Rect::new_from_x_y(
+        destination_box.x() + X_OFFSET,
+        destination_box.y(),
+        destination_box.width - (X_OFFSET * 2),
+        destination_box.height,
+    );
+
+    let bounding_box_three = Rect::new_from_x_y(
+        destination_box.x() + destination_box.width - X_OFFSET,
+        destination_box.y(),
+        X_OFFSET,
+        END_HEIGHT,
+    );
+
+    vec![bounding_box_one, bounding_box_two, bounding_box_three]
+}
+
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
@@ -702,6 +741,21 @@ impl Game for WalkTheDog {
                 let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
 
                 let background_width = background.width() as i16;
+
+                let mut platform = Platform::new(
+                    sprite_sheet.clone(),
+                    Point {
+                        x: FIRST_PLATFORM,
+                        y: LOW_PLATFORM,
+                    },
+                    vec![
+                        "13.png".to_string(),
+                        "14.png".to_string(),
+                        "15.png".to_string(),
+                    ],
+                );
+                platform
+                    .set_bounding_boxes(create_platform_bounding_boxes(&platform.destination_box));
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
                     boy: rhb,
                     backgrounds: [
@@ -716,13 +770,7 @@ impl Game for WalkTheDog {
                     ],
                     obstacles: vec![
                         Box::new(Barrier::new(Image::new(stone, Point { x: 150, y: 546 }))),
-                        Box::new(Platform::new(
-                            sprite_sheet.clone(),
-                            Point {
-                                x: FIRST_PLATFORM,
-                                y: LOW_PLATFORM,
-                            },
-                        )),
+                        Box::new(platform),
                     ],
                     obstacle_sheet: sprite_sheet,
                 })))
