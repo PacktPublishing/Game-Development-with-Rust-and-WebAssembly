@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{convert::TryInto, rc::Rc};
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -38,25 +38,47 @@ trait Obstacle {
 
 struct Platform {
     sheet: Rc<SpriteSheet>,
-    position: Point,
+    bounding_box: Rect,
+    sprites: Vec<String>,
 }
 
 impl Platform {
-    fn new(sheet: Rc<SpriteSheet>, position: Point) -> Self {
-        Platform { sheet, position }
+    fn new(sheet: Rc<SpriteSheet>, position: Point, sprites: Vec<String>) -> Self {
+        let height = sprites
+            .first()
+            .and_then(|first_sprite| sheet.cell(first_sprite))
+            .map_or(0, |cell| cell.frame.w);
+
+        let width = sprites
+            .iter()
+            .filter_map(|sprite| sheet.cell(sprite))
+            .map(|cell| cell.frame.w)
+            .sum();
+
+        Platform {
+            sheet: sheet.clone(),
+            bounding_box: Rect {
+                position,
+                width,
+                height,
+            },
+            sprites,
+        }
     }
 
-    fn bounding_box(&self) -> Rect {
-        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
+    fn bounding_box(&self) -> &Rect {
+        &self.bounding_box
+    }
 
-        Rect::new(self.position, platform.frame.w * 3, platform.frame.h)
+    fn position(&self) -> &Point {
+        &self.bounding_box.position
     }
 }
 
 impl Obstacle for Platform {
     fn check_intersection(&self, boy: &mut RedHatBoy) {
         if boy.bounding_box().intersects(&self.bounding_box()) {
-            if boy.pos_y() < self.position.y {
+            if boy.pos_y() < self.position().y {
                 boy.land_on(self.bounding_box().y());
             } else {
                 boy.kill();
@@ -65,22 +87,34 @@ impl Obstacle for Platform {
     }
 
     fn draw(&self, renderer: &Renderer) {
-        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
+        let mut x = 0;
+        self.sprites.iter().for_each(move |sprite| {
+            let platform = self
+                .sheet
+                .cell(sprite)
+                .expect("Cell does not exist on draw! Should be impossible!");
 
-        self.sheet.draw(
-            renderer,
-            &Rect::new_from_x_y(
-                platform.frame.x,
-                platform.frame.y,
-                platform.frame.w * 3,
-                platform.frame.h,
-            ),
-            &self.bounding_box(),
-        );
+            self.sheet.draw(
+                renderer,
+                &Rect::new_from_x_y(
+                    platform.frame.x,
+                    platform.frame.y,
+                    platform.frame.w,
+                    platform.frame.h,
+                ),
+                &Rect::new_from_x_y(
+                    self.position().x + x,
+                    self.position().y,
+                    platform.frame.w,
+                    platform.frame.h,
+                ),
+            );
+            x += platform.frame.w;
+        });
     }
 
     fn move_horizontally(&mut self, x: i16) {
-        self.position.x += x;
+        self.bounding_box.set_x(self.position().x + x);
     }
 
     fn right(&self) -> i16 {
@@ -578,6 +612,11 @@ impl Game for WalkTheDog {
                         Box::new(Platform::new(
                             sprite_sheet.clone(),
                             Point { x: 200, y: 400 },
+                            vec![
+                                "13.png".to_string(),
+                                "14.png".to_string(),
+                                "15.png".to_string(),
+                            ],
                         )),
                     ],
                     obstacle_sheet: sprite_sheet,
