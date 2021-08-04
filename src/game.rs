@@ -8,6 +8,7 @@ use web_sys::HtmlImageElement;
 use crate::{
     browser,
     engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet, SpriteSheet},
+    segments::rock_and_platform,
 };
 
 const FLOOR: i16 = 479;
@@ -598,18 +599,7 @@ impl Game for WalkTheDog {
                             },
                         ),
                     ],
-                    obstacles: vec![
-                        Box::new(Barrier::new(Image::new(stone, Point { x: 150, y: 546 }))),
-                        Box::new(Platform::new(
-                            sprite_sheet.clone(),
-                            Point { x: 200, y: 400 },
-                            vec![
-                                "13.png".to_string(),
-                                "14.png".to_string(),
-                                "15.png".to_string(),
-                            ],
-                        )),
-                    ],
+                    obstacles: rock_and_platform(stone, sprite_sheet.clone(), 0),
                     obstacle_sheet: sprite_sheet,
                 })))
             }
