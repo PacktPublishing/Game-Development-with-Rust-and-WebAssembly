@@ -44,16 +44,12 @@ struct Platform {
 
 impl Platform {
     fn new(sheet: Rc<SpriteSheet>, position: Point, sprites: Vec<String>) -> Self {
-        let height = sprites
-            .first()
-            .and_then(|first_sprite| sheet.cell(first_sprite))
-            .map_or(0, |cell| cell.frame.w);
+        let mut cells = sprites.iter().filter_map(|sprite| sheet.cell(sprite));
+        let first_cell = cells.next();
+        let height = first_cell.map_or(0, |cell| cell.frame.h);
 
-        let width = sprites
-            .iter()
-            .filter_map(|sprite| sheet.cell(sprite))
-            .map(|cell| cell.frame.w)
-            .sum();
+        let width =
+            cells.map(|cell| cell.frame.w).sum::<i16>() + first_cell.map_or(0, |cell| cell.frame.w);
 
         Platform {
             sheet: sheet.clone(),
