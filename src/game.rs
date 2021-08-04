@@ -19,7 +19,7 @@ pub trait Obstacle {
     fn right(&self) -> i16;
 }
 
-struct Platform {
+pub struct Platform {
     sheet: Rc<SpriteSheet>,
     bounding_boxes: Vec<Rect>,
     destination_box: Rect,
@@ -27,7 +27,7 @@ struct Platform {
 }
 
 impl Platform {
-    fn new(sheet: Rc<SpriteSheet>, position: Point, sprites: Vec<String>) -> Self {
+    pub fn new(sheet: Rc<SpriteSheet>, position: Point, sprites: Vec<String>) -> Self {
         let mut cells = sprites.iter().filter_map(|sprite| sheet.cell(sprite));
         let first_cell = cells.next();
         let height = first_cell.map_or(0, |cell| cell.frame.h);
@@ -656,12 +656,12 @@ impl WalkTheDog {
     }
 }
 
-struct Barrier {
+pub struct Barrier {
     image: Image,
 }
 
 impl Barrier {
-    fn new(image: Image) -> Self {
+    pub fn new(image: Image) -> Self {
         Barrier { image }
     }
 }
