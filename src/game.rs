@@ -524,9 +524,11 @@ pub enum WalkTheDog {
 
 struct Walk {
     obstacle_sheet: Rc<SpriteSheet>,
+    stone: HtmlImageElement,
     boy: RedHatBoy,
     backgrounds: [Image; 2],
     obstacles: Vec<Box<dyn Obstacle>>,
+    timeline: i16,
 }
 
 impl WalkTheDog {
@@ -587,6 +589,8 @@ impl Game for WalkTheDog {
                 );
 
                 let background_width = background.width() as i16;
+                let starting_obstacles = rock_and_platform(stone.clone(), sprite_sheet.clone(), 0);
+                let timeline = rightmost(&starting_obstacles);
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
                     boy: rhb,
                     backgrounds: [
@@ -599,8 +603,10 @@ impl Game for WalkTheDog {
                             },
                         ),
                     ],
-                    obstacles: rock_and_platform(stone, sprite_sheet.clone(), 0),
+                    obstacles: starting_obstacles,
                     obstacle_sheet: sprite_sheet,
+                    stone,
+                    timeline,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -640,6 +646,19 @@ impl Game for WalkTheDog {
             for (_, obstacle) in walk.obstacles.iter_mut().enumerate() {
                 obstacle.move_horizontally(walking_speed);
                 obstacle.check_intersection(&mut walk.boy);
+            }
+
+            if walk.timeline < 1000 {
+                let mut next_obstacles = rock_and_platform(
+                    walk.stone.clone(),
+                    walk.obstacle_sheet.clone(),
+                    walk.timeline + 20,
+                );
+
+                walk.timeline = rightmost(&next_obstacles);
+                walk.obstacles.append(&mut next_obstacles);
+            } else {
+                walk.timeline += walking_speed;
             }
         }
     }
