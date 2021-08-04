@@ -44,12 +44,16 @@ impl Platform {
         }
     }
 
-    fn set_bounding_boxes(&mut self, bounding_boxes: Vec<Rect>) {
+    pub fn set_bounding_boxes(&mut self, bounding_boxes: Vec<Rect>) {
         self.bounding_boxes = bounding_boxes;
     }
 
     fn bounding_boxes(&self) -> &Vec<Rect> {
         &self.bounding_boxes
+    }
+
+    pub fn destination_box(&self) -> &Rect {
+        &self.destination_box
     }
 
     fn position(&self) -> &Point {
@@ -646,9 +650,11 @@ pub enum WalkTheDog {
 
 pub struct Walk {
     obstacle_sheet: Rc<SpriteSheet>,
+    stone: HtmlImageElement,
     boy: RedHatBoy,
     backgrounds: [Image; 2],
     obstacles: Vec<Box<dyn Obstacle>>,
+    timeline: i16,
 }
 
 impl WalkTheDog {
@@ -691,29 +697,6 @@ const LOW_PLATFORM: i16 = 420;
 const HIGH_PLATFORM: i16 = 375;
 const FIRST_PLATFORM: i16 = 370;
 
-fn create_platform_bounding_boxes(destination_box: &Rect) -> Vec<Rect> {
-    const X_OFFSET: i16 = 60;
-    const END_HEIGHT: i16 = 54;
-    let destination_box = destination_box;
-    let bounding_box_one = Rect::new(destination_box.position, X_OFFSET, END_HEIGHT);
-
-    let bounding_box_two = Rect::new_from_x_y(
-        destination_box.x() + X_OFFSET,
-        destination_box.y(),
-        destination_box.width - (X_OFFSET * 2),
-        destination_box.height,
-    );
-
-    let bounding_box_three = Rect::new_from_x_y(
-        destination_box.x() + destination_box.width - X_OFFSET,
-        destination_box.y(),
-        X_OFFSET,
-        END_HEIGHT,
-    );
-
-    vec![bounding_box_one, bounding_box_two, bounding_box_three]
-}
-
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
@@ -733,21 +716,9 @@ impl Game for WalkTheDog {
                 let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
 
                 let background_width = background.width() as i16;
+                let starting_obstacles = rock_and_platform(stone.clone(), sprite_sheet.clone(), 0);
+                let timeline = rightmost(&starting_obstacles);
 
-                let mut platform = Platform::new(
-                    sprite_sheet.clone(),
-                    Point {
-                        x: FIRST_PLATFORM,
-                        y: LOW_PLATFORM,
-                    },
-                    vec![
-                        "13.png".to_string(),
-                        "14.png".to_string(),
-                        "15.png".to_string(),
-                    ],
-                );
-                platform
-                    .set_bounding_boxes(create_platform_bounding_boxes(&platform.destination_box));
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
                     boy: rhb,
                     backgrounds: [
@@ -760,8 +731,10 @@ impl Game for WalkTheDog {
                             },
                         ),
                     ],
-                    obstacles: rock_and_platform(stone, sprite_sheet.clone(), 0),
+                    obstacles: starting_obstacles,
                     obstacle_sheet: sprite_sheet,
+                    stone,
+                    timeline,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
@@ -801,6 +774,19 @@ impl Game for WalkTheDog {
             for (_, obstacle) in walk.obstacles.iter_mut().enumerate() {
                 obstacle.move_horizontally(walking_speed);
                 obstacle.check_intersection(&mut walk.boy);
+            }
+
+            if walk.timeline < 1000 {
+                let mut next_obstacles = rock_and_platform(
+                    walk.stone.clone(),
+                    walk.obstacle_sheet.clone(),
+                    walk.timeline + 20,
+                );
+
+                walk.timeline = rightmost(&next_obstacles);
+                walk.obstacles.append(&mut next_obstacles);
+            } else {
+                walk.timeline += walking_speed;
             }
         }
     }
