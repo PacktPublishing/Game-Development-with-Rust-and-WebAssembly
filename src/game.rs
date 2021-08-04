@@ -29,7 +29,7 @@ const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
 const TERMINAL_VELOCITY: i16 = 20;
 
-trait Obstacle {
+pub trait Obstacle {
     fn check_intersection(&self, boy: &mut RedHatBoy);
     fn draw(&self, renderer: &Renderer);
     fn move_horizontally(&mut self, x: i16);
