@@ -72,27 +72,22 @@ impl Obstacle for Platform {
     fn draw(&self, renderer: &Renderer) {
         let mut x = 0;
         self.sprites.iter().for_each(move |sprite| {
-            let platform = self
+            let cell = self
                 .sheet
                 .cell(sprite)
                 .expect("Cell does not exist on draw! Should be impossible!");
 
             self.sheet.draw(
                 renderer,
-                &Rect::new_from_x_y(
-                    platform.frame.x,
-                    platform.frame.y,
-                    platform.frame.w,
-                    platform.frame.h,
-                ),
+                &Rect::new_from_x_y(cell.frame.x, cell.frame.y, cell.frame.w, cell.frame.h),
                 &Rect::new_from_x_y(
                     self.position().x + x,
                     self.position().y,
-                    platform.frame.w,
-                    platform.frame.h,
+                    cell.frame.w,
+                    cell.frame.h,
                 ),
             );
-            x += platform.frame.w;
+            x += cell.frame.w;
         });
     }
 
