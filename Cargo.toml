@@ -59,7 +59,13 @@ features = ["console",
            "HtmlImageElement",
            "Response",
            "Performance",
-           "KeyboardEvent"]
+           "KeyboardEvent",
+           "AudioContext",
+           "AudioBuffer",
+           "AudioBufferSourceNode",
+           "AudioDestinationNode",
+
+           ]
 
 # These crates are used for running unit tests.
 [dev-dependencies]
