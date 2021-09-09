@@ -3,6 +3,7 @@ mod browser;
 mod engine;
 mod game;
 mod segments;
+mod sound;
 
 use engine::GameLoop;
 use game::WalkTheDog;
