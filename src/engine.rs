@@ -1,4 +1,5 @@
 use crate::browser::{self, LoopClosure};
+use crate::sound;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures::channel::{
@@ -8,6 +9,8 @@ use futures::channel::{
 use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
+use web_sys::AudioBuffer;
+use web_sys::AudioContext;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 #[derive(Debug, Copy, Clone)]
@@ -334,5 +337,37 @@ impl SpriteSheet {
 
     pub fn draw(&self, renderer: &Renderer, source: &Rect, destination: &Rect) {
         renderer.draw_image(&self.image, source, destination);
+    }
+}
+
+#[derive(Clone)]
+pub struct Audio {
+    context: AudioContext,
+}
+
+#[derive(Clone)]
+pub struct Sound {
+    buffer: AudioBuffer,
+}
+
+impl Audio {
+    pub fn new() -> Result<Self> {
+        Ok(Audio {
+            context: sound::create_audio_context()?,
+        })
+    }
+
+    pub async fn load_sound(&self, filename: &str) -> Result<Sound> {
+        let array_buffer = browser::fetch_array_buffer(filename).await?;
+
+        let audio_buffer = sound::decode_audio_data(&self.context, &array_buffer).await?;
+
+        Ok(Sound {
+            buffer: audio_buffer,
+        })
+    }
+
+    pub fn play_sound(&self, sound: &Sound) -> Result<()> {
+        sound::play_sound(&self.context, &sound.buffer)
     }
 }
