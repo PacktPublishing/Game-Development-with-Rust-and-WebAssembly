@@ -64,7 +64,6 @@ features = ["console",
            "AudioBuffer",
            "AudioBufferSourceNode",
            "AudioDestinationNode",
-
            ]
 
 # These crates are used for running unit tests.
