@@ -507,6 +507,7 @@ impl GameObject {
         self.velocity.x += RUNNING_SPEED;
         self
     }
+
     fn stop(mut self) -> Self {
         self.velocity.x = 0;
         self

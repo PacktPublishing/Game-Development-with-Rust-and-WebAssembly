@@ -22,7 +22,10 @@ fn connect_with_audio_node(
         .map_err(|err| anyhow!("Error connecting audio source to destination {:#?}", err))
 }
 
-async fn decode_audio_data(ctx: &AudioContext, array_buffer: &ArrayBuffer) -> Result<AudioBuffer> {
+pub async fn decode_audio_data(
+    ctx: &AudioContext,
+    array_buffer: &ArrayBuffer,
+) -> Result<AudioBuffer> {
     JsFuture::from(
         ctx.decode_audio_data(&array_buffer)
             .map_err(|err| anyhow!("Could not decode audio from array buffer {:#?}", err))?,
