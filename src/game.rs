@@ -1,3 +1,5 @@
+use crate::engine::Audio;
+use crate::engine::Sound;
 use std::rc::Rc;
 
 use anyhow::{anyhow, Result};
@@ -122,37 +124,43 @@ pub struct RedHatBoy {
 }
 
 impl RedHatBoy {
-    fn new(sheet: Sheet, image: HtmlImageElement) -> Self {
+    fn new(sheet: Sheet, image: HtmlImageElement, audio: Audio, sound: Sound) -> Self {
         RedHatBoy {
-            state: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
+            state: RedHatBoyStateMachine::Idle(RedHatBoyState::new(audio, sound)),
             sprite_sheet: sheet,
             image,
         }
     }
 
     fn run_right(&mut self) {
-        self.state = self.state.run();
+        let state = self.state.clone();
+        self.state = state.run();
     }
 
     fn slide(&mut self) {
-        self.state = self.state.slide();
+        let state = self.state.clone();
+        self.state = state.slide();
     }
 
     fn jump(&mut self) {
-        self.state = self.state.jump();
+        let state = self.state.clone();
+        self.state = state.jump();
     }
 
     fn kill(&mut self) {
-        self.state = self.state.kill();
+        let state = self.state.clone();
+        self.state = state.kill();
     }
 
     fn land_on(&mut self, position: i16) {
         let position = position - HEIGHT_OFFSET;
-        self.state = self.state.land_on(position);
+        let state = self.state.clone();
+        self.state = state.land_on(position);
     }
 
     fn update(&mut self) {
-        self.state = self.state.update();
+        let state = self.state.clone();
+        self.state = state.update();
     }
 
     fn pos_y(&self) -> i16 {
@@ -202,7 +210,7 @@ impl RedHatBoy {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 enum RedHatBoyStateMachine {
     Idle(RedHatBoyState<Idle>),
     Running(RedHatBoyState<Running>),
@@ -336,7 +344,7 @@ impl RedHatBoyStateMachine {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 struct RedHatBoyState<S> {
     game_object: GameObject,
     _state: S,
@@ -346,7 +354,7 @@ struct RedHatBoyState<S> {
 struct Idle;
 
 impl RedHatBoyState<Idle> {
-    fn new() -> Self {
+    fn new(audio: Audio, jump_sound: Sound) -> Self {
         RedHatBoyState {
             game_object: GameObject {
                 frame: 0,
@@ -355,6 +363,8 @@ impl RedHatBoyState<Idle> {
                     y: FLOOR,
                 },
                 velocity: Point { x: 0, y: 0 },
+                audio,
+                jump_sound,
             },
             _state: Idle {},
         }
@@ -402,7 +412,8 @@ impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
         machine.game_object = machine
             .game_object
             .reset_frame()
-            .set_vertical_velocity(JUMP_SPEED);
+            .set_vertical_velocity(JUMP_SPEED)
+            .play_jump_sound();
         RedHatBoyState {
             game_object: machine.game_object,
             _state: Jumping {},
@@ -465,11 +476,13 @@ impl From<RedHatBoyState<Falling>> for RedHatBoyState<KnockedOut> {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 struct GameObject {
     frame: u8,
     position: Point,
     velocity: Point,
+    audio: Audio,
+    jump_sound: Sound,
 }
 
 impl GameObject {
@@ -515,6 +528,13 @@ impl GameObject {
 
     fn set_on(mut self, position: i16) -> Self {
         self.position.y = position;
+        self
+    }
+
+    fn play_jump_sound(self) -> Self {
+        if let Err(err) = self.audio.play_sound(&self.jump_sound) {
+            log!("Error playing jump sound {:#?}", err);
+        }
         self
     }
 }
@@ -585,9 +605,16 @@ impl Game for WalkTheDog {
                     engine::load_image("tiles.png").await?,
                 ));
 
+                let audio = Audio::new()?;
+                let sound = audio.load_sound("SFX_Jump_23.mp3").await?;
+                let background_music = audio.load_sound("background_song.mp3").await?;
+                audio.play_looping_sound(&background_music)?;
+
                 let rhb = RedHatBoy::new(
                     rhb_sheet.into_serde::<Sheet>()?,
                     engine::load_image("rhb.png").await?,
+                    audio,
+                    sound,
                 );
 
                 let background_width = background.width() as i16;

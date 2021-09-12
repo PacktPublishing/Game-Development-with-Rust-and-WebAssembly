@@ -36,10 +36,24 @@ pub async fn decode_audio_data(
     .map_err(|err| anyhow!("Could not cast into AudioBuffer {:#?}", err))
 }
 
-pub fn play_sound(ctx: &AudioContext, buffer: &AudioBuffer) -> Result<()> {
+fn create_track_source(ctx: &AudioContext, buffer: &AudioBuffer) -> Result<AudioBufferSourceNode> {
     let track_source = create_buffer_source(ctx)?;
     track_source.set_buffer(Some(&buffer));
     connect_with_audio_node(&track_source, &ctx.destination())?;
+    Ok(track_source)
+}
+
+pub enum LOOPING {
+    NO,
+    YES,
+}
+
+pub fn play_sound(ctx: &AudioContext, buffer: &AudioBuffer, looping: LOOPING) -> Result<()> {
+    let track_source = create_track_source(ctx, buffer)?;
+    if let LOOPING::YES = looping {
+        track_source.set_loop(true);
+    }
+
     track_source
         .start()
         .map_err(|err| anyhow!("Could not start sound! {:#?}", err))
