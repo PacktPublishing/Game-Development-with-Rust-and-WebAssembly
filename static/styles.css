@@ -1,0 +1,25 @@
+#ui {
+    position: absolute;
+}
+
+@font-face {
+  font-family: 'Ken Future';
+  src: url('kenney_future_narrow-webfont.woff2');
+}
+
+button {
+    font-family: 'Ken Future';
+    background: -72px -60px url('Button.svg');
+    border: none;
+    width: 82px;
+    height: 33px;
+    transform: scale(1.8) translate(150px, 100px);
+}
+
+button:hover {
+    background: -158px -60px url('Button.svg');
+}
+
+button:active {
+    background: -244px -60px url('Button.svg');
+}
