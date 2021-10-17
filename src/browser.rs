@@ -125,10 +125,9 @@ pub fn now() -> Result<f64> {
 }
 
 pub fn draw_ui(html: &str) -> Result<()> {
-    find_ui().and_then(|ui| {
-        ui.insert_adjacent_html("afterbegin", html)
-            .map_err(|err| anyhow!("Could not insert html {:#?}", err))
-    })
+    find_ui()?
+        .insert_adjacent_html("afterbegin", html)
+        .map_err(|err| anyhow!("Could not insert html {:#?}", err))
 }
 
 pub fn hide_ui(html: &str) -> Result<()> {
