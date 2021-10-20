@@ -594,6 +594,7 @@ impl Game for WalkTheDog {
     async fn initialize(&mut self) -> Result<Box<dyn Game>> {
         match self {
             WalkTheDog::Loading => {
+    async fn initialize(self) -> Result<Box<dyn Game>> {
                 let rhb_sheet = browser::fetch_json("rhb.json").await?;
                 let background = engine::load_image("BG.png").await?;
                 let stone = engine::load_image("Stone.png").await?;

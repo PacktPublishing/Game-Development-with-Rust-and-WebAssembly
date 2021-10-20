@@ -147,7 +147,7 @@ const FRAME_SIZE: f32 = 1.0 / 60.0 * 1000.0;
 
 #[async_trait(?Send)]
 pub trait Game {
-    async fn initialize(&mut self) -> Result<Box<dyn Game>>;
+    async fn initialize(self) -> Result<Box<dyn Game>>;
     fn update(&mut self, keystate: &KeyState);
     fn draw(&self, context: &Renderer);
 }
