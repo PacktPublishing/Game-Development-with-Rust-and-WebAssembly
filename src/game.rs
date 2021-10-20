@@ -748,10 +748,9 @@ impl Obstacle for Barrier {
 
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
-    async fn initialize(&self) -> Result<Box<dyn Game>> {
+    async fn initialize(self) -> Result<Box<dyn Game>> {
         match self {
             WalkTheDog::Loading => {
-                let sheet = browser::fetch_json("rhb.json").await?.into_serde()?;
                 let background = engine::load_image("BG.png").await?;
                 let stone = engine::load_image("Stone.png").await?;
 
