@@ -18,6 +18,38 @@ const HEIGHT: i16 = 600;
 const TIMELINE_MINIMUM: i16 = 1000;
 const OBSTACLE_BUFFER: i16 = 20;
 
+pub struct WalkTheDog {
+    machine: Option<WalkTheDogStateMachine>,
+}
+
+impl WalkTheDog {
+    pub fn new() -> Self {
+        WalkTheDog { machine: None }
+    }
+}
+
+enum WalkTheDogStateMachine {
+    Ready(WalkTheDogState<Ready>),
+    Walking(WalkTheDogState<Walking>),
+    GameOver(WalkTheDogState<GameOver>),
+}
+
+struct WalkTheDogState<T> {
+    _state: T,
+}
+
+struct Ready {
+    walk: Walk,
+}
+
+struct Walking {
+    walk: Walk,
+}
+
+struct GameOver {
+    walk: Walk,
+}
+
 pub trait Obstacle {
     fn check_intersection(&self, boy: &mut RedHatBoy);
     fn draw(&self, renderer: &Renderer);
@@ -669,11 +701,6 @@ mod red_hat_boy_states {
     }
 }
 
-pub enum WalkTheDog {
-    Loading,
-    Loaded(Walk),
-}
-
 pub struct Walk {
     obstacle_sheet: Rc<SpriteSheet>,
     stone: HtmlImageElement,
@@ -710,12 +737,6 @@ impl Walk {
     }
 }
 
-impl WalkTheDog {
-    pub fn new() -> Self {
-        WalkTheDog::Loading {}
-    }
-}
-
 pub struct Barrier {
     image: Image,
 }
@@ -749,8 +770,11 @@ impl Obstacle for Barrier {
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(self) -> Result<Box<dyn Game>> {
-        match self {
-            WalkTheDog::Loading => {
+        match self.machine {
+            None => {
+                let sheet = browser::fetch_json("rhb.json")
+                    .await?
+                    .into_serde::<Sheet>()?;
                 let background = engine::load_image("BG.png").await?;
                 let stone = engine::load_image("Stone.png").await?;
 
@@ -772,67 +796,84 @@ impl Game for WalkTheDog {
                 let starting_obstacles = stone_and_platform(stone.clone(), sprite_sheet.clone(), 0);
                 let timeline = rightmost(&starting_obstacles);
 
-                Ok(Box::new(WalkTheDog::Loaded(Walk {
-                    boy: rhb,
-                    backgrounds: [
-                        Image::new(background.clone(), Point { x: 0, y: 0 }),
-                        Image::new(
-                            background,
-                            Point {
-                                x: background_width,
-                                y: 0,
-                            },
-                        ),
-                    ],
-                    obstacles: starting_obstacles,
-                    obstacle_sheet: sprite_sheet,
-                    stone,
-                    timeline,
-                })))
+                let machine = WalkTheDogStateMachine::Ready(WalkTheDogState {
+                    _state: Ready {
+                        walk: Walk {
+                            boy: rhb,
+                            backgrounds: [
+                                Image::new(background.clone(), Point { x: 0, y: 0 }),
+                                Image::new(
+                                    background,
+                                    Point {
+                                        x: background_width,
+                                        y: 0,
+                                    },
+                                ),
+                            ],
+                            obstacles: starting_obstacles,
+                            obstacle_sheet: sprite_sheet,
+                            stone,
+                            timeline,
+                        },
+                    },
+                });
+
+                Ok(Box::new(WalkTheDog {
+                    machine: Some(machine),
+                }))
             }
-            WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
+            Some(_) => Err(anyhow!("Error: Game is already initialized!")),
         }
     }
 
     fn update(&mut self, keystate: &KeyState) {
-        if let WalkTheDog::Loaded(walk) = self {
-            if keystate.is_pressed("ArrowRight") {
-                walk.boy.run_right();
-            }
+        if let Some(machine) = &mut self.machine {
+            match machine {
+                WalkTheDogStateMachine::Ready(state) => {
+                    if keystate.is_pressed("ArrowRight") {
+                        state._state.walk.boy.run_right();
+                    }
 
-            if keystate.is_pressed("Space") {
-                walk.boy.jump();
-            }
+                    if keystate.is_pressed("Space") {
+                        state._state.walk.boy.jump();
+                    }
 
-            if keystate.is_pressed("ArrowDown") {
-                walk.boy.slide();
-            }
+                    if keystate.is_pressed("ArrowDown") {
+                        state._state.walk.boy.slide();
+                    }
 
-            walk.boy.update();
+                    state._state.walk.boy.update();
 
-            let velocity = walk.velocity();
-            let [first_background, second_background] = &mut walk.backgrounds;
-            first_background.move_horizontally(velocity);
-            second_background.move_horizontally(velocity);
+                    let walking_speed = state._state.walk.velocity();
+                    let [first_background, second_background] = &mut state._state.walk.backgrounds;
+                    first_background.move_horizontally(walking_speed);
+                    second_background.move_horizontally(walking_speed);
 
-            if first_background.right() < 0 {
-                first_background.set_x(second_background.right());
-            }
-            if second_background.right() < 0 {
-                second_background.set_x(first_background.right());
-            }
+                    if first_background.right() < 0 {
+                        first_background.set_x(second_background.right());
+                    }
+                    if second_background.right() < 0 {
+                        second_background.set_x(first_background.right());
+                    }
 
-            walk.obstacles.retain(|obstacle| obstacle.right() > 0);
+                    state
+                        ._state
+                        .walk
+                        .obstacles
+                        .retain(|obstacle| obstacle.right() > 0);
 
-            walk.obstacles.iter_mut().for_each(|obstacle| {
-                obstacle.move_horizontally(velocity);
-                obstacle.check_intersection(&mut walk.boy);
-            });
+                    for (_, obstacle) in state._state.walk.obstacles.iter_mut().enumerate() {
+                        obstacle.move_horizontally(walking_speed);
+                        obstacle.check_intersection(&mut state._state.walk.boy);
+                    }
 
-            if walk.timeline < TIMELINE_MINIMUM {
-                walk.generate_next_segment();
-            } else {
-                walk.timeline += velocity;
+                    if state._state.walk.timeline < TIMELINE_MINIMUM {
+                        state._state.walk.generate_next_segment()
+                    } else {
+                        state._state.walk.timeline += walking_speed;
+                    }
+                }
+                _ => log!("doomed"),
             }
         }
     }
@@ -840,15 +881,20 @@ impl Game for WalkTheDog {
     fn draw(&self, renderer: &Renderer) {
         renderer.clear(&Rect::new(Point { x: 0, y: 0 }, 600, HEIGHT));
 
-        if let WalkTheDog::Loaded(walk) = self {
-            walk.backgrounds.iter().for_each(|background| {
-                background.draw(renderer);
-            });
-            walk.boy.draw(renderer);
+        if let Some(machine) = &self.machine {
+            match machine {
+                WalkTheDogStateMachine::Ready(state) => {
+                    state._state.walk.backgrounds.iter().for_each(|background| {
+                        background.draw(renderer);
+                    });
+                    state._state.walk.boy.draw(renderer);
 
-            walk.obstacles.iter().for_each(|obstacle| {
-                obstacle.draw(renderer);
-            });
+                    state._state.walk.obstacles.iter().for_each(|obstacle| {
+                        obstacle.draw(renderer);
+                    });
+                }
+                _ => log!("Doomed"),
+            }
         }
     }
 }
