@@ -133,12 +133,12 @@ pub fn draw_ui(html: &str) -> Result<()> {
         .map_err(|err| anyhow!("Could not insert html {:#?}", err))
 }
 
-pub fn hide_ui(html: &str) -> Result<()> {
+pub fn hide_ui() -> Result<()> {
     let ui = find_ui()?;
 
     if let Some(child) = ui.first_child() {
         ui.remove_child(&child)
-            .map(|removed_child| ())
+            .map(|_removed_child| ())
             .map_err(|err| anyhow!("Failed to remove child {:#?}", err))
     } else {
         Ok(())
