@@ -115,7 +115,11 @@ impl WalkTheDogState<Walking> {
 
     fn update(mut self, keystate: &KeyState) -> WalkTheDogStateMachine {
         self._state.update(keystate);
-        WalkTheDogStateMachine::Walking(self)
+        if self._state.knocked_out() {
+            WalkTheDogStateMachine::GameOver(self.into())
+        } else {
+            WalkTheDogStateMachine::Walking(self)
+        }
     }
 }
 
@@ -124,6 +128,10 @@ struct Walking {
 }
 
 impl Walking {
+    fn knocked_out(&self) -> bool {
+        self.walk.boy.knocked_out()
+    }
+
     fn draw(&self, renderer: &Renderer) {
         self.walk.draw(renderer)
     }
@@ -192,6 +200,20 @@ impl From<WalkTheDogState<Ready>> for WalkTheDogState<Walking> {
 
         WalkTheDogState {
             _state: Walking {
+                walk: state._state.walk,
+            },
+        }
+    }
+}
+
+impl From<WalkTheDogState<Walking>> for WalkTheDogState<GameOver> {
+    fn from(state: WalkTheDogState<Walking>) -> Self {
+        if let Err(err) = browser::draw_ui("<button>New Game</button>") {
+            log!("Error rendering ui {:#?}", err);
+        }
+
+        WalkTheDogState {
+            _state: GameOver {
                 walk: state._state.walk,
             },
         }
@@ -326,6 +348,10 @@ impl RedHatBoy {
     fn update(&mut self) {
         let state = self.state.clone();
         self.state = state.update();
+    }
+
+    fn knocked_out(&self) -> bool {
+        self.state.knocked_out()
     }
 
     fn pos_y(&self) -> i16 {
@@ -464,6 +490,13 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Sliding(state) => &state.game_object,
             RedHatBoyStateMachine::Falling(state) => &state.game_object,
             RedHatBoyStateMachine::KnockedOut(state) => &state.game_object,
+        }
+    }
+
+    fn knocked_out(&self) -> bool {
+        match self {
+            RedHatBoyStateMachine::KnockedOut(_) => true,
+            _ => false,
         }
     }
 
