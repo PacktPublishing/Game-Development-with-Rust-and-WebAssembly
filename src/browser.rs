@@ -140,6 +140,11 @@ pub fn hide_ui() -> Result<()> {
         ui.remove_child(&child)
             .map(|_removed_child| ())
             .map_err(|err| anyhow!("Failed to remove child {:#?}", err))
+            .and_then(|_unit| {
+                canvas()?
+                    .focus()
+                    .map_err(|err| anyhow!("Could not set focus to canavs! {:#?}", err))
+            })
     } else {
         Ok(())
     }
