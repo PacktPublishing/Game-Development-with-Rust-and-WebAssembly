@@ -5,9 +5,9 @@ use wasm_bindgen::{
     closure::WasmClosure, closure::WasmClosureFnOnce, prelude::Closure, JsCast, JsValue,
 };
 use wasm_bindgen_futures::JsFuture;
-use web_sys::Element;
 use web_sys::{
-    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Response, Window,
+    CanvasRenderingContext2d, Document, Element, HtmlCanvasElement, HtmlElement, HtmlImageElement,
+    Response, Window,
 };
 
 // Straight taken from https://rustwasm.github.io/book/game-of-life/debugging.html
@@ -147,4 +147,17 @@ fn find_ui() -> Result<Element> {
         doc.get_element_by_id("ui")
             .ok_or(anyhow!("UI element not found"))
     })
+}
+
+pub fn find_html_element_by_id(id: &str) -> Result<HtmlElement> {
+    document()
+        .and_then(|doc| {
+            doc.get_element_by_id(id)
+                .ok_or(anyhow!("Element with id {} not found", id))
+        })
+        .and_then(|element| {
+            element
+                .dyn_into::<HtmlElement>()
+                .map_err(|err| anyhow!("Could not cast into HtmlElement {:#?}", err))
+        })
 }

@@ -5,6 +5,7 @@ use std::rc::Rc;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use engine::Image;
+use futures::channel::mpsc::UnboundedReceiver;
 use rand::prelude::*;
 use web_sys::HtmlImageElement;
 
@@ -54,7 +55,7 @@ impl WalkTheDogStateMachine {
         match self {
             WalkTheDogStateMachine::Ready(state) => state.update(keystate),
             WalkTheDogStateMachine::Walking(state) => state.update(keystate),
-            WalkTheDogStateMachine::GameOver(state) => state.update(keystate),
+            WalkTheDogStateMachine::GameOver(state) => state.update(),
         }
     }
 
@@ -179,16 +180,28 @@ impl WalkTheDogState<GameOver> {
         self._state.draw(renderer);
     }
 
-    fn update(self, keystate: &KeyState) -> WalkTheDogStateMachine {
-        WalkTheDogStateMachine::GameOver(self)
+    fn update(mut self) -> WalkTheDogStateMachine {
+        if self._state.new_game_pressed() {
+            WalkTheDogStateMachine::Ready(self.into())
+        } else {
+            WalkTheDogStateMachine::GameOver(self)
+        }
     }
 }
 
 struct GameOver {
     walk: Walk,
+    new_game_event: UnboundedReceiver<()>,
 }
 
 impl GameOver {
+    fn new_game_pressed(&mut self) -> bool {
+        match self.new_game_event.try_next() {
+            Ok(Some(())) => true,
+            _ => false,
+        }
+    }
+
     fn draw(&self, renderer: &Renderer) {
         self.walk.draw(renderer)
     }
@@ -208,13 +221,27 @@ impl From<WalkTheDogState<Ready>> for WalkTheDogState<Walking> {
 
 impl From<WalkTheDogState<Walking>> for WalkTheDogState<GameOver> {
     fn from(state: WalkTheDogState<Walking>) -> Self {
-        if let Err(err) = browser::draw_ui("<button>New Game</button>") {
-            log!("Error rendering ui {:#?}", err);
-        }
+        let receiver = browser::draw_ui("<button id='new_game'>New Game</button>")
+            .and_then(|_unit| browser::find_html_element_by_id("new_game"))
+            .map(|element| engine::add_click_handler(element))
+            .unwrap();
 
         WalkTheDogState {
             _state: GameOver {
                 walk: state._state.walk,
+                new_game_event: receiver,
+            },
+        }
+    }
+}
+
+impl From<WalkTheDogState<GameOver>> for WalkTheDogState<Ready> {
+    fn from(state: WalkTheDogState<GameOver>) -> Self {
+        browser::hide_ui();
+
+        WalkTheDogState {
+            _state: Ready {
+                walk: Walk::reset(state._state.walk),
             },
         }
     }
@@ -317,6 +344,15 @@ impl RedHatBoy {
             sprite_sheet: sheet,
             image,
         }
+    }
+
+    fn reset(boy: Self) -> Self {
+        RedHatBoy::new(
+            boy.sprite_sheet,
+            boy.image,
+            boy.state.game_object().audio.clone(),
+            boy.state.game_object().jump_sound.clone(),
+        )
     }
 
     fn run_right(&mut self) {
@@ -854,6 +890,21 @@ impl Game for WalkTheDog {
 }
 
 impl Walk {
+    fn reset(walk: Self) -> Self {
+        let starting_obstacles =
+            rock_and_platform(walk.stone.clone(), walk.obstacle_sheet.clone(), 0);
+        let timeline = rightmost(&starting_obstacles);
+
+        Walk {
+            boy: RedHatBoy::reset(walk.boy),
+            backgrounds: walk.backgrounds,
+            obstacles: starting_obstacles,
+            obstacle_sheet: walk.obstacle_sheet,
+            stone: walk.stone,
+            timeline,
+        }
+    }
+
     fn draw(&self, renderer: &Renderer) {
         self.backgrounds.iter().for_each(|background| {
             background.draw(renderer);
