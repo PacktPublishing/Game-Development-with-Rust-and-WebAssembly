@@ -388,3 +388,25 @@ impl Audio {
         sound::play_sound(&self.context, &sound.buffer, sound::LOOPING::YES)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn two_rects_that_intersect_on_the_left() {
+        let rect1 = Rect {
+            position: Point { x: 10, y: 10 },
+            height: 100,
+            width: 100,
+        };
+
+        let rect2 = Rect {
+            position: Point { x: 0, y: 10 },
+            height: 100,
+            width: 100,
+        };
+
+        assert_eq!(rect2.intersects(&rect1), true);
+    }
+}
