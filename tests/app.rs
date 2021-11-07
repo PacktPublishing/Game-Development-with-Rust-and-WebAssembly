@@ -16,16 +16,3 @@ fn rust_test() {
 fn web_test() {
     assert_eq!(1, 1);
 }
-
-// This runs a unit test in the browser, and in addition it supports asynchronous Future APIs.
-#[wasm_bindgen_test(async)]
-fn async_test() -> impl Future<Item = (), Error = JsValue> {
-    // Creates a JavaScript Promise which will asynchronously resolve with the value 42.
-    let promise = js_sys::Promise::resolve(&JsValue::from(42));
-
-    // Converts that Promise into a Future.
-    // The unit test will wait for the Future to resolve.
-    JsFuture::from(promise).map(|x| {
-        assert_eq!(x, 42);
-    })
-}
