@@ -7,15 +7,8 @@ use futures::channel::mpsc::UnboundedReceiver;
 use rand::prelude::*;
 use web_sys::HtmlImageElement;
 
-#[cfg(test)]
-mod test_browser;
-#[cfg(test)]
-use test_browser as browser;
-
-#[cfg(not(test))]
-use crate::browser;
-
 use crate::{
+    browser,
     engine::{self, Audio, Cell, Game, KeyState, Point, Rect, Renderer, Sheet, Sound, SpriteSheet},
     segments::*,
 };
