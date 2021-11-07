@@ -1,5 +1,3 @@
-use crate::engine::Audio;
-use crate::engine::Sound;
 use std::rc::Rc;
 
 use anyhow::{anyhow, Result};
@@ -9,9 +7,16 @@ use futures::channel::mpsc::UnboundedReceiver;
 use rand::prelude::*;
 use web_sys::HtmlImageElement;
 
+#[cfg(test)]
+mod test_browser;
+#[cfg(test)]
+use test_browser as browser;
+
+#[cfg(not(test))]
+use crate::browser;
+
 use crate::{
-    browser,
-    engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet, SpriteSheet},
+    engine::{self, Audio, Cell, Game, KeyState, Point, Rect, Renderer, Sheet, Sound, SpriteSheet},
     segments::*,
 };
 
