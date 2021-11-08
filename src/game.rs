@@ -1093,7 +1093,6 @@ fn rightmost(obstacle_list: &Vec<Box<dyn Obstacle>>) -> i16 {
         .max_by(|x, y| x.cmp(&y))
         .unwrap_or(0)
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1139,11 +1138,24 @@ mod tests {
             stone: image.clone(),
             timeline: 0,
         };
+
+        let document = browser::document().unwrap();
+        document
+            .body()
+            .unwrap()
+            .insert_adjacent_html("afterbegin", "<div id='ui'></div>")
+            .unwrap();
+        browser::draw_ui("<p>This is the UI</p>").unwrap();
         let state = WalkTheDogState {
             _state: GameOver {
                 new_game_event: receiver,
                 walk: walk,
             },
         };
+
+        let next_state: WalkTheDogState<Ready> = state.into();
+
+        let ui = browser::find_html_element_by_id("ui").unwrap();
+        assert_eq!(ui.child_element_count(), 0);
     }
 }
