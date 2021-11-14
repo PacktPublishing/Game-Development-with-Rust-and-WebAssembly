@@ -121,7 +121,7 @@ impl WalkTheDogState<Walking> {
     fn end_game(self) -> WalkTheDogState<GameOver> {
         let receiver = browser::draw_ui("<button id='new_game'>New Game</button>")
             .and_then(|_unit| browser::find_html_element_by_id("new_game"))
-            .map(|element| engine::add_click_handler(element))
+            .map(engine::add_click_handler)
             .unwrap();
 
         WalkTheDogState {
@@ -758,7 +758,7 @@ mod red_hat_boy_states {
             self.update_context(JUMPING_FRAMES);
 
             if self.context.position.y >= FLOOR {
-                JumpingEndState::Landing(self.land_on(HEIGHT.into()))
+                JumpingEndState::Landing(self.land_on(HEIGHT))
             } else {
                 JumpingEndState::Jumping(self)
             }
@@ -1089,13 +1089,14 @@ impl Game for WalkTheDog {
     }
 }
 
-fn rightmost(obstacle_list: &Vec<Box<dyn Obstacle>>) -> i16 {
+fn rightmost(obstacle_list: &[Box<dyn Obstacle>]) -> i16 {
     obstacle_list
         .iter()
         .map(|obstacle| obstacle.right())
-        .max_by(|x, y| x.cmp(&y))
+        .max_by(|x, y| x.cmp(y))
         .unwrap_or(0)
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1156,7 +1157,7 @@ mod tests {
             },
         };
 
-        let next_state: WalkTheDogState<Ready> = state.into();
+        let _next_state: WalkTheDogState<Ready> = state.into();
 
         let ui = browser::find_html_element_by_id("ui").unwrap();
         assert_eq!(ui.child_element_count(), 0);
