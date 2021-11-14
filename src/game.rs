@@ -8,6 +8,7 @@ use web_sys::HtmlImageElement;
 
 use self::red_hat_boy_states::*;
 use crate::{
+    browser,
     engine::{
         self, Audio, Cell, Game, Image, KeyState, Point, Rect, Renderer, Sheet, Sound, SpriteSheet,
     },
@@ -204,7 +205,9 @@ impl WalkTheDogState<GameOver> {
     }
 
     fn new_game(self) -> WalkTheDogState<Ready> {
-        browser::hide_ui();
+        if let Err(err) = browser::hide_ui() {
+            error!("Error hiding the browser {:#?}", err);
+        }
 
         WalkTheDogState {
             _state: Ready,
