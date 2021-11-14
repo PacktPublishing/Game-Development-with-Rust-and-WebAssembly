@@ -235,7 +235,9 @@ impl From<WalkTheDogState<Walking>> for WalkTheDogState<GameOver> {
 
 impl From<WalkTheDogState<GameOver>> for WalkTheDogState<Ready> {
     fn from(state: WalkTheDogState<GameOver>) -> Self {
-        browser::hide_ui();
+        if let Err(err) = browser::hide_ui() {
+            error!("Error hiding the browser {:#?}", err);
+        }
 
         WalkTheDogState {
             _state: Ready {

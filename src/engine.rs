@@ -103,6 +103,7 @@ impl Renderer {
             .expect("Drawing is throwing exceptions! Unrecoverable error.");
     }
 
+    #[allow(dead_code)]
     pub fn draw_rect(&self, bounding_box: &Rect) {
         self.context.set_stroke_style(&JsValue::from_str("#FF0000"));
         self.context.begin_path();
@@ -124,13 +125,17 @@ pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
     let error_tx = Rc::clone(&success_tx);
     let success_callback = browser::closure_once(move || {
         if let Some(success_tx) = success_tx.lock().ok().and_then(|mut opt| opt.take()) {
-            success_tx.send(Ok(()));
+            if let Err(err) = success_tx.send(Ok(())) {
+                error!("Could not send successful image loaded message! {:#?}", err);
+            }
         }
     });
 
     let error_callback: Closure<dyn FnMut(JsValue)> = browser::closure_once(move |err| {
         if let Some(error_tx) = error_tx.lock().ok().and_then(|mut opt| opt.take()) {
-            error_tx.send(Err(anyhow!("Error Loading Image: {:#?}", err)));
+            if let Err(err) = error_tx.send(Err(anyhow!("Error Loading Image: {:#?}", err))) {
+                error!("Could not send error message on loading image! {:#?}", err);
+            }
         }
     });
 
@@ -160,7 +165,7 @@ pub struct GameLoop {
 type SharedLoopClosure = Rc<RefCell<Option<LoopClosure>>>;
 
 impl GameLoop {
-    pub async fn start(mut game: impl Game + 'static) -> Result<()> {
+    pub async fn start(game: impl Game + 'static) -> Result<()> {
         let mut keyevent_receiver = prepare_input()?;
         let mut game = game.initialize().await?;
 
@@ -188,7 +193,7 @@ impl GameLoop {
             game_loop.last_frame = perf;
             game.draw(&renderer);
 
-            browser::request_animation_frame(f.borrow().as_ref().unwrap());
+            browser::request_animation_frame(f.borrow().as_ref().unwrap()).unwrap();
         }));
 
         browser::request_animation_frame(
@@ -200,6 +205,7 @@ impl GameLoop {
     }
 }
 
+#[derive(Debug)]
 pub struct KeyState {
     pressed_keys: HashMap<String, web_sys::KeyboardEvent>,
 }
@@ -247,15 +253,21 @@ fn prepare_input() -> Result<UnboundedReceiver<KeyPress>> {
     let keydown_sender = Rc::new(RefCell::new(keydown_sender));
     let keyup_sender = Rc::clone(&keydown_sender);
     let onkeydown = browser::closure_wrap(Box::new(move |keycode: web_sys::KeyboardEvent| {
-        keydown_sender
+        if let Err(err) = keydown_sender
             .borrow_mut()
-            .start_send(KeyPress::KeyDown(keycode));
+            .start_send(KeyPress::KeyDown(keycode))
+        {
+            error!("Could not send keyDown message {:#?}", err);
+        }
     }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
 
     let onkeyup = browser::closure_wrap(Box::new(move |keycode: web_sys::KeyboardEvent| {
-        keyup_sender
+        if let Err(err) = keyup_sender
             .borrow_mut()
-            .start_send(KeyPress::KeyUp(keycode));
+            .start_send(KeyPress::KeyUp(keycode))
+        {
+            error!("Could not send keyUp message {:#?}", err);
+        }
     }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
 
     browser::canvas()?.set_onkeydown(Some(onkeydown.as_ref().unchecked_ref()));
@@ -270,7 +282,9 @@ pub fn add_click_handler(elem: HtmlElement) -> UnboundedReceiver<()> {
     let (mut click_sender, click_receiver) = unbounded();
 
     let on_click = browser::closure_wrap(Box::new(move || {
-        click_sender.start_send(());
+        if let Err(err) = click_sender.start_send(()) {
+            error!("Could not send click message {:#?}", err);
+        }
     }) as Box<dyn FnMut()>);
 
     elem.set_onclick(Some(on_click.as_ref().unchecked_ref()));
