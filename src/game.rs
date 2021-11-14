@@ -194,10 +194,7 @@ struct GameOver {
 
 impl GameOver {
     fn new_game_pressed(&mut self) -> bool {
-        match self.new_game_event.try_next() {
-            Ok(Some(())) => true,
-            _ => false,
-        }
+        matches!(self.new_game_event.try_next(), Ok(Some(())))
     }
 
     fn draw(&self, renderer: &Renderer) {
@@ -221,7 +218,7 @@ impl From<WalkTheDogState<Walking>> for WalkTheDogState<GameOver> {
     fn from(state: WalkTheDogState<Walking>) -> Self {
         let receiver = browser::draw_ui("<button id='new_game'>New Game</button>")
             .and_then(|_unit| browser::find_html_element_by_id("new_game"))
-            .map(|element| engine::add_click_handler(element))
+            .map(engine::add_click_handler)
             .unwrap();
 
         WalkTheDogState {
@@ -486,23 +483,23 @@ impl RedHatBoyStateMachine {
             }
             RedHatBoyStateMachine::Idle(mut state) => {
                 state.game_object = state.game_object.set_on(position);
-                RedHatBoyStateMachine::Idle(state.into())
+                RedHatBoyStateMachine::Idle(state)
             }
             RedHatBoyStateMachine::Running(mut state) => {
                 state.game_object = state.game_object.set_on(position);
-                RedHatBoyStateMachine::Running(state.into())
+                RedHatBoyStateMachine::Running(state)
             }
             RedHatBoyStateMachine::Sliding(mut state) => {
                 state.game_object = state.game_object.set_on(position);
-                RedHatBoyStateMachine::Sliding(state.into())
+                RedHatBoyStateMachine::Sliding(state)
             }
             RedHatBoyStateMachine::Falling(mut state) => {
                 state.game_object = state.game_object.set_on(position);
-                RedHatBoyStateMachine::Falling(state.into())
+                RedHatBoyStateMachine::Falling(state)
             }
             RedHatBoyStateMachine::KnockedOut(mut state) => {
                 state.game_object = state.game_object.set_on(position);
-                RedHatBoyStateMachine::KnockedOut(state.into())
+                RedHatBoyStateMachine::KnockedOut(state)
             }
         }
     }
@@ -530,10 +527,7 @@ impl RedHatBoyStateMachine {
     }
 
     fn knocked_out(&self) -> bool {
-        match self {
-            RedHatBoyStateMachine::KnockedOut(_) => true,
-            _ => false,
-        }
+        matches!(self, RedHatBoyStateMachine::KnockedOut(_))
     }
 
     fn update(self) -> Self {
@@ -942,13 +936,14 @@ impl Walk {
     }
 }
 
-fn rightmost(obstacle_list: &Vec<Box<dyn Obstacle>>) -> i16 {
+fn rightmost(obstacle_list: &[Box<dyn Obstacle>]) -> i16 {
     obstacle_list
         .iter()
         .map(|obstacle| obstacle.right())
         .max_by(|x, y| x.cmp(&y))
         .unwrap_or(0)
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1009,7 +1004,7 @@ mod tests {
             },
         };
 
-        let next_state: WalkTheDogState<Ready> = state.into();
+        let _next_state: WalkTheDogState<Ready> = state.into();
 
         let ui = browser::find_html_element_by_id("ui").unwrap();
         assert_eq!(ui.child_element_count(), 0);

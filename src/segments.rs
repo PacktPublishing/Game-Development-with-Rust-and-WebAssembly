@@ -18,7 +18,7 @@ pub fn rock_and_platform(
             },
         ))),
         Box::new(Platform::new(
-            sprite_sheet.clone(),
+            sprite_sheet,
             Point {
                 x: offset_x + 200,
                 y: 400,
@@ -46,7 +46,7 @@ pub fn platform_and_rock(
             },
         ))),
         Box::new(Platform::new(
-            sprite_sheet.clone(),
+            sprite_sheet,
             Point {
                 x: offset_x + 200,
                 y: 400,

@@ -199,7 +199,7 @@ impl GameLoop {
         browser::request_animation_frame(
             g.borrow()
                 .as_ref()
-                .ok_or(anyhow!("GameLoop: Loop is None"))?,
+                .ok_or_else(|| anyhow!("GameLoop: Loop is None"))?,
         )?;
         Ok(())
     }
@@ -212,9 +212,9 @@ pub struct KeyState {
 
 impl KeyState {
     fn new() -> Self {
-        return KeyState {
+        KeyState {
             pressed_keys: HashMap::new(),
-        };
+        }
     }
 
     pub fn is_pressed(&self, code: &str) -> bool {
@@ -226,7 +226,7 @@ impl KeyState {
     }
 
     fn set_released(&mut self, code: &str) {
-        self.pressed_keys.remove(code.into());
+        self.pressed_keys.remove(code);
     }
 }
 
