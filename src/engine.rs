@@ -115,6 +115,14 @@ impl Renderer {
         );
         self.context.stroke();
     }
+
+    #[allow(dead_code)]
+    pub fn draw_text(&self, text: &str, location: &Point) -> Result<()> {
+        self.context.set_font("16pt serif");
+        self.context
+            .fill_text(text, location.x.into(), location.y.into())?;
+        Ok(())
+    }
 }
 
 pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
