@@ -17,7 +17,10 @@ jobs:
         with:
           node-version: '12'
       - run: npm install
-      - run: cargo install wasm-pack
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          version: 0.9.1
       - run: npm test
       - uses: actions-rs/cargo@v1
         with:
