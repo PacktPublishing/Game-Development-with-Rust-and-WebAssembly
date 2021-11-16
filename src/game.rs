@@ -1007,6 +1007,6 @@ mod tests {
         let _next_state: WalkTheDogState<Ready> = state.into();
 
         let ui = browser::find_html_element_by_id("ui").unwrap();
-        assert_eq!(ui.child_element_count(), 1);
+        assert_eq!(ui.child_element_count(), 0);
     }
 }
