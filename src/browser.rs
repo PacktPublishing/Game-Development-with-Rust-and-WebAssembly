@@ -24,7 +24,7 @@ macro_rules! error {
 }
 
 pub fn window() -> Result<Window> {
-    web_sys::window().ok_or(anyhow!("No Window Found"))
+    web_sys::window().ok_or_else(|| anyhow!("No Window Found"))
 }
 
 pub fn document() -> Result<Document> {
