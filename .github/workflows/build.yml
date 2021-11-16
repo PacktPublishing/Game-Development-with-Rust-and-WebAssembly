@@ -21,6 +21,7 @@ jobs:
         with:
           crate: wasm-pack
           version: 0.9.1
+          use-tool-cache: true
       - run: npm test
       - uses: actions-rs/cargo@v1
         with:
