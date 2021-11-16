@@ -22,8 +22,8 @@ jobs:
           crate: wasm-pack
           version: 0.9.1
           use-tool-cache: true
-      - run: npm test
       - name: Run Clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
+      - run: npm test
