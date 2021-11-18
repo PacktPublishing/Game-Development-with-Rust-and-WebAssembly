@@ -28,10 +28,3 @@ jobs:
           command: clippy
       - run: npm test
       - run: npm run build
-      - name: Deploy to Github Pages
-        uses: crazy-max/ghaction-github-pages@v2
-        with:
-          target_branch: gh-pages
-          build_dir: dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
