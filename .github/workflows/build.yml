@@ -15,7 +15,7 @@ jobs:
           components: rustfmt, clippy
       - uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: '16.13.0'
       - run: npm install
       - uses: actions-rs/install@v0.1
         with:
