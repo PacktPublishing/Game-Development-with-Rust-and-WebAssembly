@@ -18,3 +18,7 @@ jobs:
           crate: wasm-pack
           version: 0.9.1
           use-tool-cache: true
+      - name: Annotate commit with clippy warnings
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
