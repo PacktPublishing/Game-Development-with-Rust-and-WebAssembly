@@ -29,7 +29,9 @@ pub fn window() -> Result<Window> {
 }
 
 pub fn document() -> Result<Document> {
-    window()?.document().ok_or(anyhow!("No Document Found"))
+    window()?
+        .document()
+        .ok_or_else(|| anyhow!("No Document Found"))
 }
 
 pub fn canvas() -> Result<HtmlCanvasElement> {
