@@ -3,3 +3,6 @@ node_modules
 /target
 /pkg
 /wasm-pack.log
+
+# Local Netlify folder
+.netlify
