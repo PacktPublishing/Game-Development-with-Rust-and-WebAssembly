@@ -17,11 +17,6 @@ struct Options {
 
 #[wasm_bindgen]
 extern "C" {
-    type PIXI;
-}
-
-#[wasm_bindgen]
-extern "C" {
     type Application;
     type Container;
 
