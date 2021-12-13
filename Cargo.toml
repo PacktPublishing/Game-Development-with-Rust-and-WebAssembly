@@ -23,25 +23,20 @@ lto = true
 [dependencies]
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
 # to interact with JavaScript.
-wasm-bindgen = "0.2.74"
-
-# `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
-# compared to the default allocator's ~10K. However, it is slower than the default
-# allocator, so it's not enabled by default.
-wee_alloc = { version = "0.4.2", optional = true }
+wasm-bindgen = "0.2.78"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so it's only enabled
 # in debug mode.
-console_error_panic_hook = "0.1.6"
-rand = "0.8.3"
-getrandom = { version = "0.2", features = ["js"] }
+console_error_panic_hook = "0.1.7"
+rand = "0.8.4"
+getrandom = { version = "0.2.3", features = ["js"] }
 
 # The `web-sys` crate allows you to interact with the various browser APIs,
 # like the DOM.
 [dependencies.web-sys]
-version = "0.3.47"
+version = "0.3.55"
 features = ["console",
            "Window",
            "Document",
@@ -51,7 +46,7 @@ features = ["console",
 
 # These crates are used for running unit tests.
 [dev-dependencies]
-wasm-bindgen-test = "0.3.20"
-futures = "0.3.12"
-js-sys = "0.3.47"
-wasm-bindgen-futures = "0.4.20"
+wasm-bindgen-test = "0.3.28"
+futures = "0.3.18"
+js-sys = "0.3.55"
+wasm-bindgen-futures = "0.4.28"
