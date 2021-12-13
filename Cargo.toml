@@ -1,12 +1,12 @@
 # You must change these to your own details.
 [package]
 name = "rust-webpack-template"
-description = "My super awesome Rust, WebAssembly, and Webpack project!"
+description = "Walk the Dog - the game for the Rust Games with WebAssembly book"
 version = "0.1.0"
-authors = ["You <you@example.com>"]
+authors = ["Eric Smith <paytonrules@gmail.com>"]
 categories = ["wasm"]
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]

@@ -1,3 +1,13 @@
+## Current Toolchains
+
+Rust Version: 1.57.0
+Target: wasm32-unknown-unknown
+Edition: 2021
+
+Node Version: Nodejs 16.13.0
+
+I use asdf to install Node, so there is a .tool-versions present, but you do not have to.
+
 ## How to install
 
 ```sh
