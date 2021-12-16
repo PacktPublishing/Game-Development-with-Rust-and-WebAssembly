@@ -28,9 +28,9 @@ wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
 console_error_panic_hook = "0.1.7"
 rand = "0.8.4"
 getrandom = { version = "0.2.3", features = ["js"] }
-futures = "0.3.12"
-wasm-bindgen-futures = "0.4.20"
-serde = {version = "1.0.59", features = ["derive"] }
+futures = "0.3.17"
+wasm-bindgen-futures = "0.4.28"
+serde = {version = "1.0.131", features = ["derive"] }
 
 # The `web-sys` crate allows you to interact with the various browser APIs,
 # like the DOM.
@@ -48,6 +48,5 @@ features = ["console",
 # These crates are used for running unit tests.
 [dev-dependencies]
 wasm-bindgen-test = "0.3.28"
-futures = "0.3.17"
 js-sys = "0.3.55"
 wasm-bindgen-futures = "0.4.28"
