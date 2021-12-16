@@ -47,6 +47,6 @@ features = ["console",
 # These crates are used for running unit tests.
 [dev-dependencies]
 wasm-bindgen-test = "0.3.28"
-futures = "0.3.18"
+futures = "0.3.17"
 js-sys = "0.3.55"
 wasm-bindgen-futures = "0.4.28"
