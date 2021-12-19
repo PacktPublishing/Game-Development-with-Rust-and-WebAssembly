@@ -49,4 +49,3 @@ features = ["console",
 [dev-dependencies]
 wasm-bindgen-test = "0.3.28"
 js-sys = "0.3.55"
-wasm-bindgen-futures = "0.4.28"
