@@ -23,14 +23,6 @@ struct Sheet {
     frames: HashMap<String, Cell>,
 }
 
-// When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
-// allocator.
-//
-// If you don't want to use `wee_alloc`, you can safely delete this.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 // This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
@@ -86,7 +78,6 @@ pub fn main_js() -> Result<(), JsValue> {
         let interval_callback = Closure::wrap(Box::new(move || {
             frame = (frame + 1) % 8;
             let frame_name = format!("Run ({}).png", frame + 1);
-            console::log_1(&JsValue::from_str(&frame_name));
             let sprite = sheet.frames.get(&frame_name).expect("Cell not found");
 
             context.clear_rect(0.0, 0.0, 600.0, 600.0);
@@ -112,8 +103,6 @@ pub fn main_js() -> Result<(), JsValue> {
 
     Ok(())
 }
-
-fn callback() {}
 
 async fn fetch_json(json_path: &str) -> Result<JsValue, JsValue> {
     let window = web_sys::window().unwrap();
