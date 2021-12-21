@@ -31,8 +31,8 @@ getrandom = { version = "0.2.3", features = ["js"] }
 futures = "0.3.17"
 wasm-bindgen-futures = "0.4.28"
 serde = {version = "1.0.131", features = ["derive"] }
-anyhow = "1.0.40"
-async-trait = "0.1.49"
+anyhow = "1.0.51"
+async-trait = "0.1.52"
 
 # The `web-sys` crate allows you to interact with the various browser APIs,
 # like the DOM.
