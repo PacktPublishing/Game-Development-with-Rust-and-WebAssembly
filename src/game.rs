@@ -11,10 +11,10 @@ use crate::{
 
 #[derive(Deserialize)]
 struct SheetRect {
-    x: u16,
-    y: u16,
-    w: u16,
-    h: u16,
+    x: i16,
+    y: i16,
+    w: i16,
+    h: i16,
 }
 
 #[derive(Deserialize)]
