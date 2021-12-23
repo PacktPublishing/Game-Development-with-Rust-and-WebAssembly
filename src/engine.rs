@@ -131,7 +131,7 @@ impl GameLoop {
         browser::request_animation_frame(
             g.borrow()
                 .as_ref()
-                .ok_or(anyhow!("GameLoop: Loop is None"))?,
+                .ok_or_else(|| anyhow!("GameLoop: Loop is None"))?,
         )?;
         Ok(())
     }
