@@ -47,7 +47,7 @@ impl WalkTheDog {
 
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
-    async fn initialize(&mut self) -> Result<Box<dyn Game>> {
+    async fn initialize(&self) -> Result<Box<dyn Game>> {
         let json = browser::fetch_json("rhb.json").await?;
 
         let sheet = json.into_serde()?;
