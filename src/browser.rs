@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use futures::Future;
+use std::future::Future;
 use wasm_bindgen::{
     closure::WasmClosure, closure::WasmClosureFnOnce, prelude::Closure, JsCast, JsValue,
 };
@@ -71,7 +71,7 @@ pub async fn fetch_json(json_path: &str) -> Result<JsValue> {
             .map_err(|err| anyhow!("Could not get JSON from response {:#?}", err))?,
     )
     .await
-    .map_err(|err| anyhow!("error fetching json {:#?}", err))
+    .map_err(|err| anyhow!("error fetching JSON {:#?}", err))
 }
 
 pub fn new_image() -> Result<HtmlImageElement> {
