@@ -87,7 +87,7 @@ const FRAME_SIZE: f32 = 1.0 / 60.0 * 1000.0;
 pub trait Game {
     async fn initialize(&self) -> Result<Box<dyn Game>>;
     fn update(&mut self, keystate: &KeyState);
-    fn draw(&self, context: &Renderer);
+    fn draw(&self, renderer: &Renderer);
 }
 
 pub struct GameLoop {
@@ -97,7 +97,7 @@ pub struct GameLoop {
 type SharedLoopClosure = Rc<RefCell<Option<LoopClosure>>>;
 
 impl GameLoop {
-    pub async fn start(mut game: impl Game + 'static) -> Result<()> {
+    pub async fn start(game: impl Game + 'static) -> Result<()> {
         let mut keyevent_receiver = prepare_input()?;
         let mut game = game.initialize().await?;
 
