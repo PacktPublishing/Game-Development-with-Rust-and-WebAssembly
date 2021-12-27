@@ -80,9 +80,6 @@ pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
     Ok(image)
 }
 
-// Sixty Frames per second, converted to a frame length in milliseconds
-const FRAME_SIZE: f32 = 1.0 / 60.0 * 1000.0;
-
 #[async_trait(?Send)]
 pub trait Game {
     async fn initialize(&self) -> Result<Box<dyn Game>>;
@@ -90,6 +87,8 @@ pub trait Game {
     fn draw(&self, renderer: &Renderer);
 }
 
+// Sixty Frames per second, converted to a frame length in milliseconds
+const FRAME_SIZE: f32 = 1.0 / 60.0 * 1000.0;
 pub struct GameLoop {
     last_frame: f64,
     accumulated_delta: f32,
