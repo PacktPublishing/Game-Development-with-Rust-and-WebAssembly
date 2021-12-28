@@ -95,7 +95,8 @@ impl Game for WalkTheDog {
             height: 600.0,
         });
 
-        let frame_name = format!("Run ({}).png", (self.frame / 3) + 1);
+        let current_sprite = (self.frame / 3) + 1;
+        let frame_name = format!("Run ({}).png", current_sprite);
         let sprite = self
             .sheet
             .as_ref()
