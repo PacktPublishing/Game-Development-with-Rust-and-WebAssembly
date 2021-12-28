@@ -325,12 +325,9 @@ impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
         match self {
             WalkTheDog::Loading => {
-                let json = browser::fetch_json("rhb.json").await?;
+                let sheet = browser::fetch_json("rhb.json").await?.into_serde()?;
 
-                let rhb = RedHatBoy::new(
-                    json.into_serde::<Sheet>()?,
-                    engine::load_image("rhb.png").await?,
-                );
+                let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
                 Ok(Box::new(WalkTheDog::Loaded(rhb)))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized")),
