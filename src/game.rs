@@ -21,7 +21,7 @@ const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
 
 pub struct RedHatBoy {
-    state: RedHatBoyStateMachine,
+    state_machine: RedHatBoyStateMachine,
     sprite_sheet: Sheet,
     image: HtmlImageElement,
 }
@@ -29,33 +29,33 @@ pub struct RedHatBoy {
 impl RedHatBoy {
     fn new(sheet: Sheet, image: HtmlImageElement) -> Self {
         RedHatBoy {
-            state: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
+            state_machine: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
             sprite_sheet: sheet,
             image,
         }
     }
 
     fn run_right(&mut self) {
-        self.state = self.state.run();
+        self.state_machine = self.state_machine.run();
     }
 
     fn slide(&mut self) {
-        self.state = self.state.slide();
+        self.state_machine = self.state_machine.slide();
     }
 
     fn jump(&mut self) {
-        self.state = self.state.jump();
+        self.state_machine = self.state_machine.jump();
     }
 
     fn update(&mut self) {
-        self.state = self.state.update();
+        self.state_machine = self.state_machine.update();
     }
 
     fn draw(&self, renderer: &Renderer) {
         let frame_name = format!(
             "{} ({}).png",
-            self.state.state_name(),
-            (self.state.game_object().frame / 3) + 1
+            self.state_machine.state_name(),
+            (self.state_machine.context().frame / 3) + 1
         );
 
         let sprite = self
@@ -73,14 +73,15 @@ impl RedHatBoy {
                 height: sprite.frame.h.into(),
             },
             &Rect {
-                x: self.state.game_object().position.x.into(),
-                y: self.state.game_object().position.y.into(),
+                x: self.state_machine.context().position.x.into(),
+                y: self.state_machine.context().position.y.into(),
                 width: sprite.frame.w.into(),
                 height: sprite.frame.h.into(),
             },
         );
     }
 }
+
 #[derive(Copy, Clone)]
 enum RedHatBoyStateMachine {
     Idle(RedHatBoyState<Idle>),
@@ -120,38 +121,38 @@ impl RedHatBoyStateMachine {
         }
     }
 
-    fn game_object(&self) -> &GameObject {
+    fn context(&self) -> &RedHatBoyContext {
         match self {
-            RedHatBoyStateMachine::Idle(state) => &state.game_object,
-            RedHatBoyStateMachine::Running(state) => &state.game_object,
-            RedHatBoyStateMachine::Jumping(state) => &state.game_object,
-            RedHatBoyStateMachine::Sliding(state) => &state.game_object,
+            RedHatBoyStateMachine::Idle(state) => &state.context,
+            RedHatBoyStateMachine::Running(state) => &state.context,
+            RedHatBoyStateMachine::Jumping(state) => &state.context,
+            RedHatBoyStateMachine::Sliding(state) => &state.context,
         }
     }
 
     fn update(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(mut state) => {
-                state.game_object = state.game_object.update(IDLE_FRAMES);
+                state.context = state.context.update(IDLE_FRAMES);
                 RedHatBoyStateMachine::Idle(state)
             }
             RedHatBoyStateMachine::Running(mut state) => {
-                state.game_object = state.game_object.update(RUNNING_FRAMES);
+                state.context = state.context.update(RUNNING_FRAMES);
                 RedHatBoyStateMachine::Running(state)
             }
             RedHatBoyStateMachine::Jumping(mut state) => {
-                state.game_object = state.game_object.update(JUMPING_FRAMES);
+                state.context = state.context.update(JUMPING_FRAMES);
 
-                if state.game_object.position.y >= FLOOR {
+                if state.context.position.y >= FLOOR {
                     RedHatBoyStateMachine::Running(state.into())
                 } else {
                     RedHatBoyStateMachine::Jumping(state)
                 }
             }
             RedHatBoyStateMachine::Sliding(mut state) => {
-                state.game_object = state.game_object.update(SLIDING_FRAMES);
+                state.context = state.context.update(SLIDING_FRAMES);
 
-                if state.game_object.frame >= SLIDING_FRAMES {
+                if state.context.frame >= SLIDING_FRAMES {
                     RedHatBoyStateMachine::Running(state.into())
                 } else {
                     RedHatBoyStateMachine::Sliding(state)
@@ -163,7 +164,7 @@ impl RedHatBoyStateMachine {
 
 #[derive(Copy, Clone)]
 struct RedHatBoyState<S> {
-    game_object: GameObject,
+    context: RedHatBoyContext,
     _state: S,
 }
 
@@ -173,7 +174,7 @@ struct Idle;
 impl RedHatBoyState<Idle> {
     fn new() -> Self {
         RedHatBoyState {
-            game_object: GameObject {
+            context: RedHatBoyContext {
                 frame: 0,
                 position: Point { x: 0, y: FLOOR },
                 velocity: Point { x: 0, y: 0 },
@@ -188,9 +189,9 @@ struct Running;
 
 impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Idle>) -> Self {
-        machine.game_object = machine.game_object.reset_frame().run_right();
+        machine.context = machine.context.reset_frame().run_right();
         RedHatBoyState {
-            game_object: machine.game_object,
+            context: machine.context,
             _state: Running {},
         }
     }
@@ -198,9 +199,9 @@ impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
 
 impl From<RedHatBoyState<Jumping>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Jumping>) -> Self {
-        machine.game_object = machine.game_object.reset_frame();
+        machine.context = machine.context.reset_frame();
         RedHatBoyState {
-            game_object: machine.game_object,
+            context: machine.context,
             _state: Running {},
         }
     }
@@ -208,9 +209,9 @@ impl From<RedHatBoyState<Jumping>> for RedHatBoyState<Running> {
 
 impl From<RedHatBoyState<Sliding>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Sliding>) -> Self {
-        machine.game_object = machine.game_object.reset_frame();
+        machine.context = machine.context.reset_frame();
         RedHatBoyState {
-            game_object: machine.game_object,
+            context: machine.context,
             _state: Running {},
         }
     }
@@ -221,12 +222,12 @@ struct Jumping;
 
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
     fn from(mut machine: RedHatBoyState<Running>) -> Self {
-        machine.game_object = machine
-            .game_object
+        machine.context = machine
+            .context
             .reset_frame()
             .set_vertical_velocity(JUMP_SPEED);
         RedHatBoyState {
-            game_object: machine.game_object,
+            context: machine.context,
             _state: Jumping {},
         }
     }
@@ -237,22 +238,22 @@ struct Sliding;
 
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Sliding> {
     fn from(mut machine: RedHatBoyState<Running>) -> Self {
-        machine.game_object = machine.game_object.reset_frame();
+        machine.context = machine.context.reset_frame();
         RedHatBoyState {
-            game_object: machine.game_object,
+            context: machine.context,
             _state: Sliding {},
         }
     }
 }
 
 #[derive(Copy, Clone)]
-struct GameObject {
+struct RedHatBoyContext {
     frame: u8,
     position: Point,
     velocity: Point,
 }
 
-impl GameObject {
+impl RedHatBoyContext {
     fn update(mut self, frame_count: u8) -> Self {
         self.velocity.y += GRAVITY;
 
