@@ -1,5 +1,7 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use std::marker::PhantomData;
+
 use web_sys::HtmlImageElement;
 
 use crate::{
@@ -19,6 +21,25 @@ const SLIDING_FRAME_NAME: &str = "Slide";
 const JUMPING_FRAME_NAME: &str = "Jump";
 const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
+
+// Things to try:
+// Can I use Generics to get rid of the 'match every state' functions (hooray!)
+// - You have to start by putting a trait on T that states implement
+//
+// Can I use PhantomData on the structs so that no memory is used.
+// Can I get rid of match { Type, _ => error } - That's a big goal. That plus boilerplate
+// Should I use a Box to get rid of unnecessary copies
+// Can I get rid of the enum noise via a generic game struct? That's the winner
+// If I can do that, I can do it on RedHatBoy
+// - That would do it provided everything is generic and you constantly copy (or for efficiency transmute)
+//
+//
+//
+//
+
+trait State {
+    fn update(&self);
+}
 
 pub struct RedHatBoy {
     state_machine: RedHatBoyStateMachine,
@@ -133,15 +154,15 @@ impl RedHatBoyStateMachine {
     fn update(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(mut state) => {
-                state.context = state.context.update(IDLE_FRAMES);
+                state.update(IDLE_FRAMES);
                 RedHatBoyStateMachine::Idle(state)
             }
             RedHatBoyStateMachine::Running(mut state) => {
-                state.context = state.context.update(RUNNING_FRAMES);
+                state.update(RUNNING_FRAMES);
                 RedHatBoyStateMachine::Running(state)
             }
             RedHatBoyStateMachine::Jumping(mut state) => {
-                state.context = state.context.update(JUMPING_FRAMES);
+                state.update(JUMPING_FRAMES);
 
                 if state.context.position.y >= FLOOR {
                     RedHatBoyStateMachine::Running(state.into())
@@ -150,7 +171,7 @@ impl RedHatBoyStateMachine {
                 }
             }
             RedHatBoyStateMachine::Sliding(mut state) => {
-                state.context = state.context.update(SLIDING_FRAMES);
+                state.update(SLIDING_FRAMES);
 
                 if state.context.frame >= SLIDING_FRAMES {
                     RedHatBoyStateMachine::Running(state.into())
@@ -166,6 +187,12 @@ impl RedHatBoyStateMachine {
 struct RedHatBoyState<S> {
     context: RedHatBoyContext,
     _state: S,
+}
+
+impl<S> RedHatBoyState<S> {
+    fn update(&mut self, frames: u8) {
+        self.context = self.context.update(frames);
+    }
 }
 
 #[derive(Copy, Clone)]
