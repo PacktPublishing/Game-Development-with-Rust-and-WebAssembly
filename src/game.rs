@@ -58,15 +58,15 @@ impl RedHatBoy {
     }
 
     fn run_right(&mut self) {
-        self.state_machine = self.state_machine.run();
+        self.state_machine = self.state_machine.transition(Event::Run);
     }
 
     fn slide(&mut self) {
-        self.state_machine = self.state_machine.slide();
+        self.state_machine = self.state_machine.transition(Event::Slide);
     }
 
     fn jump(&mut self) {
-        self.state_machine = self.state_machine.jump();
+        self.state_machine = self.state_machine.transition(Event::Jump);
     }
 
     fn update(&mut self) {
@@ -112,25 +112,26 @@ enum RedHatBoyStateMachine {
     Jumping(RedHatBoyState<Jumping>),
 }
 
+enum Event {
+    Run,
+    Jump,
+    Slide,
+}
+
 impl RedHatBoyStateMachine {
-    fn run(self) -> Self {
-        match self {
-            RedHatBoyStateMachine::Idle(val) => RedHatBoyStateMachine::Running(val.into()),
-            _ => self,
-        }
-    }
+    fn transition(self, event: Event) -> Self {
+        match (self, event) {
+            (RedHatBoyStateMachine::Idle(val), Event::Run) => {
+                RedHatBoyStateMachine::Running(val.into())
+            }
+            (RedHatBoyStateMachine::Running(val), Event::Jump) => {
+                RedHatBoyStateMachine::Jumping(val.into())
+            }
 
-    fn jump(self) -> Self {
-        match self {
-            RedHatBoyStateMachine::Running(val) => RedHatBoyStateMachine::Jumping(val.into()),
-            _ => self,
-        }
-    }
-
-    fn slide(self) -> Self {
-        match self {
-            RedHatBoyStateMachine::Running(val) => RedHatBoyStateMachine::Sliding(val.into()),
-            _ => self,
+            (RedHatBoyStateMachine::Running(val), Event::Slide) => {
+                RedHatBoyStateMachine::Sliding(val.into())
+            }
+            (_, _) => self,
         }
     }
 
