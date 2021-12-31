@@ -115,6 +115,8 @@ enum Event {
     Run,
     Jump,
     Slide,
+    Land,
+    Stand,
 }
 
 impl RedHatBoyStateMachine {
@@ -123,6 +125,7 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Idle(val), Event::Run) => {
                 RedHatBoyStateMachine::Running(val.into())
             }
+
             (RedHatBoyStateMachine::Running(val), Event::Jump) => {
                 RedHatBoyStateMachine::Jumping(val.into())
             }
@@ -130,6 +133,15 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Running(val), Event::Slide) => {
                 RedHatBoyStateMachine::Sliding(val.into())
             }
+
+            (RedHatBoyStateMachine::Jumping(val), Event::Land) => {
+                RedHatBoyStateMachine::Running(val.into())
+            }
+
+            (RedHatBoyStateMachine::Sliding(val), Event::Stand) => {
+                RedHatBoyStateMachine::Running(val.into())
+            }
+
             (_, _) => self,
         }
     }
@@ -162,24 +174,14 @@ impl RedHatBoyStateMachine {
                 None => RedHatBoyStateMachine::Running(state),
                 Some(event) => RedHatBoyStateMachine::Running(state).transition(event),
             },
-            RedHatBoyStateMachine::Jumping(mut state) => {
-                state.update_context(JUMPING_FRAMES);
-
-                if state.context.position.y >= FLOOR {
-                    RedHatBoyStateMachine::Running(state.into())
-                } else {
-                    RedHatBoyStateMachine::Jumping(state)
-                }
-            }
-            RedHatBoyStateMachine::Sliding(mut state) => {
-                state.update_context(SLIDING_FRAMES);
-
-                if state.context.frame >= SLIDING_FRAMES {
-                    RedHatBoyStateMachine::Running(state.into())
-                } else {
-                    RedHatBoyStateMachine::Sliding(state)
-                }
-            }
+            RedHatBoyStateMachine::Jumping(mut state) => match state.update() {
+                None => RedHatBoyStateMachine::Jumping(state),
+                Some(event) => RedHatBoyStateMachine::Jumping(state).transition(event),
+            },
+            RedHatBoyStateMachine::Sliding(mut state) => match state.update() {
+                None => RedHatBoyStateMachine::Sliding(state),
+                Some(event) => RedHatBoyStateMachine::Sliding(state).transition(event),
+            },
         }
     }
 }
@@ -260,6 +262,18 @@ impl From<RedHatBoyState<Sliding>> for RedHatBoyState<Running> {
 #[derive(Copy, Clone)]
 struct Jumping;
 
+impl RedHatBoyState<Jumping> {
+    fn update(&mut self) -> Option<Event> {
+        self.update_context(JUMPING_FRAMES);
+
+        if self.context.position.y >= FLOOR {
+            Some(Event::Land)
+        } else {
+            None
+        }
+    }
+}
+
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
     fn from(mut machine: RedHatBoyState<Running>) -> Self {
         machine.context = machine
@@ -275,6 +289,18 @@ impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
 
 #[derive(Copy, Clone)]
 struct Sliding;
+
+impl RedHatBoyState<Sliding> {
+    fn update(&mut self) -> Option<Event> {
+        self.update_context(SLIDING_FRAMES);
+
+        if self.context.frame >= SLIDING_FRAMES {
+            Some(Event::Stand)
+        } else {
+            None
+        }
+    }
+}
 
 impl From<RedHatBoyState<Running>> for RedHatBoyState<Sliding> {
     fn from(mut machine: RedHatBoyState<Running>) -> Self {
