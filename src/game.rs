@@ -155,16 +155,16 @@ impl RedHatBoyStateMachine {
 
     fn update(self) -> Self {
         match self {
-            RedHatBoyStateMachine::Idle(mut state) => {
-                state.update(IDLE_FRAMES);
-                RedHatBoyStateMachine::Idle(state)
-            }
-            RedHatBoyStateMachine::Running(mut state) => {
-                state.update(RUNNING_FRAMES);
-                RedHatBoyStateMachine::Running(state)
-            }
+            RedHatBoyStateMachine::Idle(mut state) => match state.update() {
+                None => RedHatBoyStateMachine::Idle(state),
+                Some(event) => RedHatBoyStateMachine::Idle(state).transition(event),
+            },
+            RedHatBoyStateMachine::Running(mut state) => match state.update() {
+                None => RedHatBoyStateMachine::Running(state),
+                Some(event) => RedHatBoyStateMachine::Running(state).transition(event),
+            },
             RedHatBoyStateMachine::Jumping(mut state) => {
-                state.update(JUMPING_FRAMES);
+                state.update_context(JUMPING_FRAMES);
 
                 if state.context.position.y >= FLOOR {
                     RedHatBoyStateMachine::Running(state.into())
@@ -173,7 +173,7 @@ impl RedHatBoyStateMachine {
                 }
             }
             RedHatBoyStateMachine::Sliding(mut state) => {
-                state.update(SLIDING_FRAMES);
+                state.update_context(SLIDING_FRAMES);
 
                 if state.context.frame >= SLIDING_FRAMES {
                     RedHatBoyStateMachine::Running(state.into())
@@ -192,7 +192,7 @@ struct RedHatBoyState<S> {
 }
 
 impl<S> RedHatBoyState<S> {
-    fn update(&mut self, frames: u8) {
+    fn update_context(&mut self, frames: u8) {
         self.context = self.context.update(frames);
     }
 }
@@ -211,10 +211,22 @@ impl RedHatBoyState<Idle> {
             _state: Idle {},
         }
     }
+
+    fn update(&mut self) -> Option<Event> {
+        self.update_context(IDLE_FRAMES);
+        None
+    }
 }
 
 #[derive(Copy, Clone)]
 struct Running;
+
+impl RedHatBoyState<Running> {
+    fn update(&mut self) -> Option<Event> {
+        self.update_context(RUNNING_FRAMES);
+        None
+    }
+}
 
 impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
     fn from(mut machine: RedHatBoyState<Idle>) -> Self {
