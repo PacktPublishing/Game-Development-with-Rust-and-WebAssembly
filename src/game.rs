@@ -122,24 +122,24 @@ enum Event {
 impl RedHatBoyStateMachine {
     fn transition(self, event: Event) -> Self {
         match (self, event) {
-            (RedHatBoyStateMachine::Idle(val), Event::Run) => {
-                RedHatBoyStateMachine::Running(val.into())
+            (RedHatBoyStateMachine::Idle(state), Event::Run) => {
+                RedHatBoyStateMachine::Running(state.run())
             }
 
-            (RedHatBoyStateMachine::Running(val), Event::Jump) => {
-                RedHatBoyStateMachine::Jumping(val.into())
+            (RedHatBoyStateMachine::Running(state), Event::Jump) => {
+                RedHatBoyStateMachine::Jumping(state.jump())
             }
 
-            (RedHatBoyStateMachine::Running(val), Event::Slide) => {
-                RedHatBoyStateMachine::Sliding(val.into())
+            (RedHatBoyStateMachine::Running(state), Event::Slide) => {
+                RedHatBoyStateMachine::Sliding(state.slide())
             }
 
-            (RedHatBoyStateMachine::Jumping(val), Event::Land) => {
-                RedHatBoyStateMachine::Running(val.into())
+            (RedHatBoyStateMachine::Jumping(state), Event::Land) => {
+                RedHatBoyStateMachine::Running(state.land())
             }
 
-            (RedHatBoyStateMachine::Sliding(val), Event::Stand) => {
-                RedHatBoyStateMachine::Running(val.into())
+            (RedHatBoyStateMachine::Sliding(state), Event::Stand) => {
+                RedHatBoyStateMachine::Running(state.stand())
             }
 
             (_, _) => self,
@@ -217,6 +217,14 @@ impl RedHatBoyState<Idle> {
         self.update_context(IDLE_FRAMES);
         None
     }
+
+    fn run(mut self) -> RedHatBoyState<Running> {
+        self.context = self.context.reset_frame().run_right();
+        RedHatBoyState {
+            context: self.context,
+            _state: Running {},
+        }
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -227,34 +235,20 @@ impl RedHatBoyState<Running> {
         self.update_context(RUNNING_FRAMES);
         None
     }
-}
 
-impl From<RedHatBoyState<Idle>> for RedHatBoyState<Running> {
-    fn from(mut machine: RedHatBoyState<Idle>) -> Self {
-        machine.context = machine.context.reset_frame().run_right();
+    fn jump(mut self) -> RedHatBoyState<Jumping> {
+        self.context = self.context.reset_frame().set_vertical_velocity(JUMP_SPEED);
         RedHatBoyState {
-            context: machine.context,
-            _state: Running {},
+            context: self.context,
+            _state: Jumping {},
         }
     }
-}
 
-impl From<RedHatBoyState<Jumping>> for RedHatBoyState<Running> {
-    fn from(mut machine: RedHatBoyState<Jumping>) -> Self {
-        machine.context = machine.context.reset_frame();
+    fn slide(mut self) -> RedHatBoyState<Sliding> {
+        self.context = self.context.reset_frame();
         RedHatBoyState {
-            context: machine.context,
-            _state: Running {},
-        }
-    }
-}
-
-impl From<RedHatBoyState<Sliding>> for RedHatBoyState<Running> {
-    fn from(mut machine: RedHatBoyState<Sliding>) -> Self {
-        machine.context = machine.context.reset_frame();
-        RedHatBoyState {
-            context: machine.context,
-            _state: Running {},
+            context: self.context,
+            _state: Sliding {},
         }
     }
 }
@@ -272,17 +266,12 @@ impl RedHatBoyState<Jumping> {
             None
         }
     }
-}
 
-impl From<RedHatBoyState<Running>> for RedHatBoyState<Jumping> {
-    fn from(mut machine: RedHatBoyState<Running>) -> Self {
-        machine.context = machine
-            .context
-            .reset_frame()
-            .set_vertical_velocity(JUMP_SPEED);
+    fn land(mut self) -> RedHatBoyState<Running> {
+        self.context = self.context.reset_frame();
         RedHatBoyState {
-            context: machine.context,
-            _state: Jumping {},
+            context: self.context,
+            _state: Running {},
         }
     }
 }
@@ -300,14 +289,12 @@ impl RedHatBoyState<Sliding> {
             None
         }
     }
-}
 
-impl From<RedHatBoyState<Running>> for RedHatBoyState<Sliding> {
-    fn from(mut machine: RedHatBoyState<Running>) -> Self {
-        machine.context = machine.context.reset_frame();
+    fn stand(mut self) -> RedHatBoyState<Running> {
+        self.context = self.context.reset_frame();
         RedHatBoyState {
-            context: machine.context,
-            _state: Sliding {},
+            context: self.context,
+            _state: Running {},
         }
     }
 }
