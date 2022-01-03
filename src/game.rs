@@ -123,25 +123,11 @@ enum Event {
 impl RedHatBoyStateMachine {
     fn transition(self, event: Event) -> Self {
         match (self, event) {
-            (RedHatBoyStateMachine::Idle(state), Event::Run) => {
-                RedHatBoyStateMachine::Running(state.run())
-            }
-
-            (RedHatBoyStateMachine::Running(state), Event::Jump) => {
-                RedHatBoyStateMachine::Jumping(state.jump())
-            }
-
-            (RedHatBoyStateMachine::Running(state), Event::Slide) => {
-                RedHatBoyStateMachine::Sliding(state.slide())
-            }
-
-            (RedHatBoyStateMachine::Jumping(state), Event::Land) => {
-                RedHatBoyStateMachine::Running(state.land())
-            }
-
-            (RedHatBoyStateMachine::Sliding(state), Event::Stand) => {
-                RedHatBoyStateMachine::Running(state.stand())
-            }
+            (RedHatBoyStateMachine::Idle(state), Event::Run) => state.run().into(),
+            (RedHatBoyStateMachine::Running(state), Event::Jump) => state.jump().into(),
+            (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
+            (RedHatBoyStateMachine::Jumping(state), Event::Land) => state.land().into(),
+            (RedHatBoyStateMachine::Sliding(state), Event::Stand) => state.stand().into(),
 
             (_, _) => self,
         }
@@ -149,41 +135,65 @@ impl RedHatBoyStateMachine {
 
     fn state_name(&self) -> &str {
         match self {
-            RedHatBoyStateMachine::Idle(_) => IDLE_FRAME_NAME,
-            RedHatBoyStateMachine::Running(_) => RUN_FRAME_NAME,
-            RedHatBoyStateMachine::Jumping(_) => JUMPING_FRAME_NAME,
-            RedHatBoyStateMachine::Sliding(_) => SLIDING_FRAME_NAME,
+            RedHatBoyStateMachine::Idle(state) => state.frame_name(),
+            RedHatBoyStateMachine::Running(state) => state.frame_name(),
+            RedHatBoyStateMachine::Jumping(state) => state.frame_name(),
+            RedHatBoyStateMachine::Sliding(state) => state.frame_name(),
         }
     }
 
     fn context(&self) -> &RedHatBoyContext {
         match self {
-            RedHatBoyStateMachine::Idle(state) => &state.context,
-            RedHatBoyStateMachine::Running(state) => &state.context,
-            RedHatBoyStateMachine::Jumping(state) => &state.context,
-            RedHatBoyStateMachine::Sliding(state) => &state.context,
+            RedHatBoyStateMachine::Idle(state) => state.context(),
+            RedHatBoyStateMachine::Running(state) => state.context(),
+            RedHatBoyStateMachine::Jumping(state) => state.context(),
+            RedHatBoyStateMachine::Sliding(state) => state.context(),
         }
     }
 
     fn update(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(mut state) => match state.update() {
-                None => RedHatBoyStateMachine::Idle(state),
-                Some(event) => RedHatBoyStateMachine::Idle(state).transition(event),
+                None => state.into(),
+                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
             },
             RedHatBoyStateMachine::Running(mut state) => match state.update() {
-                None => RedHatBoyStateMachine::Running(state),
-                Some(event) => RedHatBoyStateMachine::Running(state).transition(event),
+                None => state.into(),
+                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
             },
             RedHatBoyStateMachine::Jumping(mut state) => match state.update() {
-                None => RedHatBoyStateMachine::Jumping(state),
-                Some(event) => RedHatBoyStateMachine::Jumping(state).transition(event),
+                None => state.into(),
+                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
             },
             RedHatBoyStateMachine::Sliding(mut state) => match state.update() {
-                None => RedHatBoyStateMachine::Sliding(state),
-                Some(event) => RedHatBoyStateMachine::Sliding(state).transition(event),
+                None => state.into(),
+                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
             },
         }
+    }
+}
+
+impl From<RedHatBoyState<Idle>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Idle>) -> Self {
+        RedHatBoyStateMachine::Idle(state)
+    }
+}
+
+impl From<RedHatBoyState<Running>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Running>) -> Self {
+        RedHatBoyStateMachine::Running(state)
+    }
+}
+
+impl From<RedHatBoyState<Sliding>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Sliding>) -> Self {
+        RedHatBoyStateMachine::Sliding(state)
+    }
+}
+
+impl From<RedHatBoyState<Jumping>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Jumping>) -> Self {
+        RedHatBoyStateMachine::Jumping(state)
     }
 }
 
@@ -194,6 +204,10 @@ struct RedHatBoyState<S> {
 }
 
 impl<S> RedHatBoyState<S> {
+    fn context(&self) -> &RedHatBoyContext {
+        &self.context
+    }
+
     fn update_context(&mut self, frames: u8) {
         self.context = self.context.update(frames);
     }
@@ -214,6 +228,10 @@ impl RedHatBoyState<Idle> {
         }
     }
 
+    fn frame_name(&self) -> &str {
+        IDLE_FRAME_NAME
+    }
+
     fn update(&mut self) -> Option<Event> {
         self.update_context(IDLE_FRAMES);
         None
@@ -232,6 +250,10 @@ impl RedHatBoyState<Idle> {
 struct Running;
 
 impl RedHatBoyState<Running> {
+    fn frame_name(&self) -> &str {
+        RUN_FRAME_NAME
+    }
+
     fn update(&mut self) -> Option<Event> {
         self.update_context(RUNNING_FRAMES);
         None
@@ -258,6 +280,10 @@ impl RedHatBoyState<Running> {
 struct Jumping;
 
 impl RedHatBoyState<Jumping> {
+    fn frame_name(&self) -> &str {
+        JUMPING_FRAME_NAME
+    }
+
     fn update(&mut self) -> Option<Event> {
         self.update_context(JUMPING_FRAMES);
 
@@ -281,6 +307,10 @@ impl RedHatBoyState<Jumping> {
 struct Sliding;
 
 impl RedHatBoyState<Sliding> {
+    fn frame_name(&self) -> &str {
+        SLIDING_FRAME_NAME
+    }
+
     fn update(&mut self) -> Option<Event> {
         self.update_context(SLIDING_FRAMES);
 
