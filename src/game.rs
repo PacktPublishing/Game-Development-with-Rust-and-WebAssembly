@@ -138,18 +138,18 @@ impl RedHatBoyStateMachine {
                 .update()
                 .map(|event| RedHatBoyStateMachine::from(state).transition(event))
                 .unwrap_or_else(|| RedHatBoyStateMachine::from(state)),
-            RedHatBoyStateMachine::Running(mut state) => match state.update() {
-                None => state.into(),
-                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
-            },
-            RedHatBoyStateMachine::Jumping(mut state) => match state.update() {
-                None => state.into(),
-                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
-            },
-            RedHatBoyStateMachine::Sliding(mut state) => match state.update() {
-                None => state.into(),
-                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
-            },
+            RedHatBoyStateMachine::Jumping(mut state) => state
+                .update()
+                .map(|event| RedHatBoyStateMachine::from(state).transition(event))
+                .unwrap_or_else(|| RedHatBoyStateMachine::from(state)),
+            RedHatBoyStateMachine::Running(mut state) => state
+                .update()
+                .map(|event| RedHatBoyStateMachine::from(state).transition(event))
+                .unwrap_or_else(|| RedHatBoyStateMachine::from(state)),
+            RedHatBoyStateMachine::Sliding(mut state) => state
+                .update()
+                .map(|event| RedHatBoyStateMachine::from(state).transition(event))
+                .unwrap_or_else(|| RedHatBoyStateMachine::from(state)),
         }
     }
 }
