@@ -23,10 +23,6 @@ const JUMPING_FRAME_NAME: &str = "Jump";
 const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
 
-trait State {
-    fn update(&self);
-}
-
 pub struct RedHatBoy {
     state_machine: RedHatBoyStateMachine,
     sprite_sheet: Sheet,
@@ -138,10 +134,10 @@ impl RedHatBoyStateMachine {
 
     fn update(self) -> Self {
         match self {
-            RedHatBoyStateMachine::Idle(mut state) => match state.update() {
-                None => state.into(),
-                Some(event) => RedHatBoyStateMachine::from(state).transition(event),
-            },
+            RedHatBoyStateMachine::Idle(mut state) => state
+                .update()
+                .map(|event| RedHatBoyStateMachine::from(state).transition(event))
+                .unwrap_or_else(|| RedHatBoyStateMachine::from(state)),
             RedHatBoyStateMachine::Running(mut state) => match state.update() {
                 None => state.into(),
                 Some(event) => RedHatBoyStateMachine::from(state).transition(event),
