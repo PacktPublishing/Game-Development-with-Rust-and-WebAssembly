@@ -22,21 +22,6 @@ const JUMPING_FRAME_NAME: &str = "Jump";
 const JUMP_SPEED: i16 = -25;
 const GRAVITY: i16 = 1;
 
-// Things to try:
-// Can I use Generics to get rid of the 'match every state' functions (hooray!)
-// - You have to start by putting a trait on T that states implement
-//
-// Can I use PhantomData on the structs so that no memory is used.
-// Can I get rid of match { Type, _ => error } - That's a big goal. That plus boilerplate
-// Should I use a Box to get rid of unnecessary copies
-// Can I get rid of the enum noise via a generic game struct? That's the winner
-// If I can do that, I can do it on RedHatBoy
-// - That would do it provided everything is generic and you constantly copy (or for efficiency transmute)
-//
-//
-//
-//
-
 trait State {
     fn update(&self);
 }
