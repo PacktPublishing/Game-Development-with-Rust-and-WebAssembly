@@ -44,7 +44,7 @@ impl RedHatBoy {
     fn draw(&self, renderer: &Renderer) {
         let frame_name = format!(
             "{} ({}).png",
-            self.state_machine.state_name(),
+            self.state_machine.frame_name(),
             (self.state_machine.context().frame / 3) + 1
         );
 
@@ -105,7 +105,7 @@ impl RedHatBoyStateMachine {
         }
     }
 
-    fn state_name(&self) -> &str {
+    fn frame_name(&self) -> &str {
         match self {
             RedHatBoyStateMachine::Idle(state) => state.frame_name(),
             RedHatBoyStateMachine::Running(state) => state.frame_name(),
