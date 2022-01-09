@@ -81,7 +81,7 @@ enum RedHatBoyStateMachine {
     Jumping(RedHatBoyState<Jumping>),
 }
 
-enum Event {
+pub enum Event {
     Run,
     Jump,
     Slide,
