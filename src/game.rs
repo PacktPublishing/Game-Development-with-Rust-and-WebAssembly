@@ -169,7 +169,7 @@ impl From<RedHatBoyState<Jumping>> for RedHatBoyStateMachine {
     }
 }
 
-mod RedHatBoyStates {
+mod red_hat_boy_states {
     use super::Event;
     use crate::engine::Point;
 
