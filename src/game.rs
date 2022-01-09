@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use web_sys::HtmlImageElement;
 
-use self::RedHatBoyStates::*;
+use self::red_hat_boy_states::*;
 use crate::{
     browser,
     engine::{self, Game, KeyState, Rect, Renderer, Sheet},
