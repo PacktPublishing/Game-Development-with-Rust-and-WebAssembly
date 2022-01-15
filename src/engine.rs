@@ -5,9 +5,28 @@ use futures::channel::{
     mpsc::{unbounded, UnboundedReceiver},
     oneshot::channel,
 };
+use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+
+#[derive(Deserialize)]
+pub struct SheetRect {
+    pub x: i16,
+    pub y: i16,
+    pub w: i16,
+    pub h: i16,
+}
+
+#[derive(Deserialize)]
+pub struct Cell {
+    pub frame: SheetRect,
+}
+
+#[derive(Deserialize)]
+pub struct Sheet {
+    pub frames: HashMap<String, Cell>,
+}
 
 #[derive(Clone, Copy)]
 pub struct Point {
