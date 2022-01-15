@@ -148,20 +148,20 @@ impl From<RedHatBoyState<Jumping>> for RedHatBoyStateMachine {
     }
 }
 
-impl From<SlidingUpdates> for RedHatBoyStateMachine {
-    fn from(state: SlidingUpdates) -> Self {
+impl From<SlidingEndState> for RedHatBoyStateMachine {
+    fn from(state: SlidingEndState) -> Self {
         match state {
-            SlidingUpdates::Sliding(sliding) => sliding.into(),
-            SlidingUpdates::Running(running) => running.into(),
+            SlidingEndState::Sliding(sliding) => sliding.into(),
+            SlidingEndState::Running(running) => running.into(),
         }
     }
 }
 
-impl From<JumpingUpdates> for RedHatBoyStateMachine {
-    fn from(state: JumpingUpdates) -> Self {
+impl From<JumpingEndState> for RedHatBoyStateMachine {
+    fn from(state: JumpingEndState) -> Self {
         match state {
-            JumpingUpdates::Jumping(jumping) => jumping.into(),
-            JumpingUpdates::Landing(landing) => landing.into(),
+            JumpingEndState::Jumping(jumping) => jumping.into(),
+            JumpingEndState::Landing(landing) => landing.into(),
         }
     }
 }
@@ -222,10 +222,9 @@ mod red_hat_boy_states {
             self
         }
 
-        pub fn run(mut self) -> RedHatBoyState<Running> {
-            self.context = self.context.reset_frame().run_right();
+        pub fn run(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame().run_right(),
                 _state: Running {},
             }
         }
@@ -244,18 +243,16 @@ mod red_hat_boy_states {
             self
         }
 
-        pub fn jump(mut self) -> RedHatBoyState<Jumping> {
-            self.context = self.context.reset_frame().set_vertical_velocity(JUMP_SPEED);
+        pub fn jump(self) -> RedHatBoyState<Jumping> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame().set_vertical_velocity(JUMP_SPEED),
                 _state: Jumping {},
             }
         }
 
-        pub fn slide(mut self) -> RedHatBoyState<Sliding> {
-            self.context = self.context.reset_frame();
+        pub fn slide(self) -> RedHatBoyState<Sliding> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame(),
                 _state: Sliding {},
             }
         }
@@ -264,7 +261,7 @@ mod red_hat_boy_states {
     #[derive(Copy, Clone)]
     pub struct Jumping;
 
-    pub enum JumpingUpdates {
+    pub enum JumpingEndState {
         Jumping(RedHatBoyState<Jumping>),
         Landing(RedHatBoyState<Running>),
     }
@@ -274,20 +271,19 @@ mod red_hat_boy_states {
             JUMPING_FRAME_NAME
         }
 
-        pub fn update(mut self) -> JumpingUpdates {
+        pub fn update(mut self) -> JumpingEndState {
             self.update_context(JUMPING_FRAMES);
 
             if self.context.position.y >= FLOOR {
-                JumpingUpdates::Landing(self.land())
+                JumpingEndState::Landing(self.land())
             } else {
-                JumpingUpdates::Jumping(self)
+                JumpingEndState::Jumping(self)
             }
         }
 
-        pub fn land(mut self) -> RedHatBoyState<Running> {
-            self.context = self.context.reset_frame();
+        pub fn land(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame(),
                 _state: Running {},
             }
         }
@@ -296,7 +292,7 @@ mod red_hat_boy_states {
     #[derive(Copy, Clone)]
     pub struct Sliding;
 
-    pub enum SlidingUpdates {
+    pub enum SlidingEndState {
         Sliding(RedHatBoyState<Sliding>),
         Running(RedHatBoyState<Running>),
     }
@@ -306,20 +302,19 @@ mod red_hat_boy_states {
             SLIDING_FRAME_NAME
         }
 
-        pub fn update(mut self) -> SlidingUpdates {
+        pub fn update(mut self) -> SlidingEndState {
             self.update_context(SLIDING_FRAMES);
 
             if self.context.frame >= SLIDING_FRAMES {
-                SlidingUpdates::Running(self.stand())
+                SlidingEndState::Running(self.stand())
             } else {
-                SlidingUpdates::Sliding(self)
+                SlidingEndState::Sliding(self)
             }
         }
 
-        pub fn stand(mut self) -> RedHatBoyState<Running> {
-            self.context = self.context.reset_frame();
+        pub fn stand(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame(),
                 _state: Running {},
             }
         }
