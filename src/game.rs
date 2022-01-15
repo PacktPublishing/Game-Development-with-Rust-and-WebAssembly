@@ -1,31 +1,11 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use serde::Deserialize;
-use std::collections::HashMap;
 use web_sys::HtmlImageElement;
 
 use crate::{
     browser,
-    engine::{self, Game, KeyState, Point, Rect, Renderer},
+    engine::{self, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
-
-#[derive(Deserialize)]
-struct SheetRect {
-    x: i16,
-    y: i16,
-    w: i16,
-    h: i16,
-}
-
-#[derive(Deserialize)]
-struct Cell {
-    frame: SheetRect,
-}
-
-#[derive(Deserialize)]
-pub struct Sheet {
-    frames: HashMap<String, Cell>,
-}
 
 pub struct WalkTheDog {
     image: Option<HtmlImageElement>,
