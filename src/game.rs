@@ -17,10 +17,10 @@ pub struct RedHatBoy {
 }
 
 impl RedHatBoy {
-    fn new(sheet: Sheet, image: HtmlImageElement) -> Self {
+    fn new(sprite_sheet: Sheet, image: HtmlImageElement) -> Self {
         RedHatBoy {
-            state_machine: RedHatBoyStateMachine::new(),
-            sprite_sheet: sheet,
+            state_machine: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
+            sprite_sheet,
             image,
         }
     }
@@ -84,29 +84,20 @@ pub enum Event {
     Run,
     Jump,
     Slide,
-    Land,
-    Stand,
     Update,
 }
 
 impl RedHatBoyStateMachine {
-    fn new() -> Self {
-        RedHatBoyStateMachine::Idle(RedHatBoyState::new())
-    }
-
     fn transition(self, event: Event) -> Self {
         match (self, event) {
             (RedHatBoyStateMachine::Idle(state), Event::Run) => state.run().into(),
             (RedHatBoyStateMachine::Running(state), Event::Jump) => state.jump().into(),
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
-            (RedHatBoyStateMachine::Jumping(state), Event::Land) => state.land().into(),
-            (RedHatBoyStateMachine::Sliding(state), Event::Stand) => state.stand().into(),
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Jumping(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Sliding(state), Event::Update) => state.update().into(),
-
-            (_, _) => self,
+            _ => self,
         }
     }
 
