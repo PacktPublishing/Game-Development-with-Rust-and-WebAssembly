@@ -174,6 +174,9 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Running(state), Event::Jump) => state.jump().into(),
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
             (RedHatBoyStateMachine::Running(state), Event::Kill) => state.kill().into(),
+            (RedHatBoyStateMachine::Running(state), Event::Land(position)) => {
+                state.land(position).into()
+            }
             (RedHatBoyStateMachine::Jumping(state), Event::Land(position)) => {
                 state.land(position).into()
             }
@@ -313,6 +316,18 @@ mod red_hat_boy_states {
         fn update_context(&mut self, frames: u8) {
             self.context = self.context.update(frames);
         }
+
+        pub fn land(mut self, position: f32) -> RedHatBoyState<Running> {
+            // Make sure you note that this cannot use reset_frame, since sometimes you're going from running to running
+            if self.context.frame > RUNNING_FRAMES {
+                self.context = self.context.reset_frame();
+            }
+
+            RedHatBoyState {
+                context: self.context.set_on(position as i16),
+                _state: Running {},
+            }
+        }
     }
 
     #[derive(Copy, Clone)]
@@ -396,13 +411,6 @@ mod red_hat_boy_states {
     impl RedHatBoyState<Jumping> {
         pub fn frame_name(&self) -> &str {
             JUMPING_FRAME_NAME
-        }
-
-        pub fn land(self, position: f32) -> RedHatBoyState<Running> {
-            RedHatBoyState {
-                context: self.context.set_on(position as i16).reset_frame(),
-                _state: Running {},
-            }
         }
 
         pub fn kill(self) -> RedHatBoyState<Falling> {
