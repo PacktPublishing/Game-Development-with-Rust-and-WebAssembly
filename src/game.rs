@@ -45,6 +45,8 @@ impl Platform {
             },
             &self.bounding_box(),
         );
+
+        renderer.draw_rect(&self.bounding_box());
     }
 
     fn bounding_box(&self) -> Rect {
@@ -120,6 +122,15 @@ impl RedHatBoy {
     }
 
     fn bounding_box(&self) -> Rect {
+        const X_OFFSET: f32 = 18.0;
+        const WIDTH_OFFSET: f32 = 28.0;
+        let mut bounding_box = self.destination_box();
+        bounding_box.x += X_OFFSET;
+        bounding_box.width -= WIDTH_OFFSET;
+        bounding_box
+    }
+
+    fn destination_box(&self) -> Rect {
         let sprite = self.current_sprite().expect("Cell not found");
 
         Rect {
@@ -143,8 +154,10 @@ impl RedHatBoy {
                 width: sprite.frame.w.into(),
                 height: sprite.frame.h.into(),
             },
-            &self.bounding_box(),
+            &self.destination_box(),
         );
+
+        renderer.draw_rect(&self.bounding_box());
     }
 }
 
@@ -647,13 +660,13 @@ impl Game for WalkTheDog {
                 }
             }
 
-            if walk
+            /*            if walk
                 .boy
                 .bounding_box()
                 .intersects(walk.stone.bounding_box())
             {
                 walk.boy.kill()
-            }
+            }*/
         }
     }
 
