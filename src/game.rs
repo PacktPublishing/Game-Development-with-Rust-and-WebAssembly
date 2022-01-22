@@ -135,6 +135,10 @@ impl RedHatBoy {
         self.state_machine.context().position.y
     }
 
+    fn velocity_y(&self) -> i16 {
+        self.state_machine.context().velocity.y
+    }
+
     fn frame_name(&self) -> String {
         format!(
             "{} ({}).png",
@@ -556,7 +560,7 @@ mod red_hat_boy_states {
     pub struct RedHatBoyContext {
         pub frame: u8,
         pub position: Point,
-        velocity: Point,
+        pub velocity: Point,
     }
 
     impl RedHatBoyContext {
@@ -677,7 +681,7 @@ impl Game for WalkTheDog {
 
             for bounding_box in &walk.platform.bounding_boxes() {
                 if walk.boy.bounding_box().intersects(bounding_box) {
-                    if walk.boy.pos_y() < walk.platform.position.y {
+                    if walk.boy.velocity_y() > 0 && walk.boy.pos_y() < walk.platform.position.y {
                         walk.boy.land_on(bounding_box.y);
                     } else {
                         walk.boy.kill();
