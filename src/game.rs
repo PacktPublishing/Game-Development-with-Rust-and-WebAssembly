@@ -45,10 +45,6 @@ impl Platform {
             },
             &self.destination_box(),
         );
-
-        for bounding_box in self.bounding_boxes() {
-            renderer.draw_rect(&bounding_box);
-        }
     }
 
     fn destination_box(&self) -> Rect {
@@ -153,7 +149,7 @@ impl RedHatBoy {
 
     fn bounding_box(&self) -> Rect {
         const X_OFFSET: f32 = 18.0;
-        const Y_OFFSET: f32 = 18.0;
+        const Y_OFFSET: f32 = 14.0;
         const WIDTH_OFFSET: f32 = 28.0;
         let mut bounding_box = self.destination_box();
         bounding_box.x += X_OFFSET;
@@ -189,8 +185,6 @@ impl RedHatBoy {
             },
             &self.destination_box(),
         );
-
-        renderer.draw_rect(&self.bounding_box());
     }
 }
 
@@ -646,7 +640,7 @@ impl Game for WalkTheDog {
                 let platform = Platform::new(
                     platform_sheet.into_serde::<Sheet>()?,
                     engine::load_image("tiles.png").await?,
-                    Point { x: 200, y: 400 },
+                    Point { x: 350, y: 420 },
                 );
 
                 let rhb = RedHatBoy::new(
@@ -691,13 +685,13 @@ impl Game for WalkTheDog {
                 }
             }
 
-            /*            if walk
+            if walk
                 .boy
                 .bounding_box()
                 .intersects(walk.stone.bounding_box())
             {
                 walk.boy.kill()
-            }*/
+            }
         }
     }
 
