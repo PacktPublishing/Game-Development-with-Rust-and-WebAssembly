@@ -342,7 +342,7 @@ mod red_hat_boy_states {
     const SLIDING_FRAME_NAME: &str = "Slide";
     const JUMPING_FRAME_NAME: &str = "Jump";
     const FALLING_FRAME_NAME: &str = "Dead";
-    const JUMP_SPEED: i16 = -25;
+    const JUMP_SPEED: i16 = -22;
     const GRAVITY: i16 = 1;
     const TERMINAL_VELOCITY: i16 = 20;
 
@@ -644,7 +644,7 @@ impl Game for WalkTheDog {
                 let platform = Platform::new(
                     platform_sheet.into_serde::<Sheet>()?,
                     engine::load_image("tiles.png").await?,
-                    Point { x: 350, y: 420 },
+                    Point { x: 370, y: 420 },
                 );
 
                 let rhb = RedHatBoy::new(
