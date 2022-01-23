@@ -118,7 +118,7 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.transition(Event::Jump);
     }
 
-    fn kill(&mut self) {
+    fn knock_out(&mut self) {
         self.state_machine = self.state_machine.transition(Event::Kill);
     }
 
@@ -684,7 +684,7 @@ impl Game for WalkTheDog {
                     if walk.boy.velocity_y() > 0 && walk.boy.pos_y() < walk.platform.position.y {
                         walk.boy.land_on(bounding_box.y);
                     } else {
-                        walk.boy.kill();
+                        walk.boy.knock_out();
                     }
                 }
             }
@@ -694,7 +694,7 @@ impl Game for WalkTheDog {
                 .bounding_box()
                 .intersects(walk.stone.bounding_box())
             {
-                walk.boy.kill()
+                walk.boy.knock_out()
             }
         }
     }
