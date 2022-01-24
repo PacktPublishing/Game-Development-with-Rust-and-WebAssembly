@@ -119,7 +119,7 @@ impl RedHatBoy {
     }
 
     fn knock_out(&mut self) {
-        self.state_machine = self.state_machine.transition(Event::Kill);
+        self.state_machine = self.state_machine.transition(Event::KnockOut);
     }
 
     fn land_on(&mut self, position: f32) {
@@ -206,7 +206,7 @@ pub enum Event {
     Run,
     Jump,
     Slide,
-    Kill,
+    KnockOut,
     Land(f32),
     Update,
 }
@@ -217,15 +217,15 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Idle(state), Event::Run) => state.run().into(),
             (RedHatBoyStateMachine::Running(state), Event::Jump) => state.jump().into(),
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
-            (RedHatBoyStateMachine::Running(state), Event::Kill) => state.kill().into(),
+            (RedHatBoyStateMachine::Running(state), Event::KnockOut) => state.knock_out().into(),
             (RedHatBoyStateMachine::Running(state), Event::Land(position)) => {
                 state.land(position).into()
             }
             (RedHatBoyStateMachine::Jumping(state), Event::Land(position)) => {
                 state.land(position).into()
             }
-            (RedHatBoyStateMachine::Jumping(state), Event::Kill) => state.kill().into(),
-            (RedHatBoyStateMachine::Sliding(state), Event::Kill) => state.kill().into(),
+            (RedHatBoyStateMachine::Jumping(state), Event::KnockOut) => state.knock_out().into(),
+            (RedHatBoyStateMachine::Sliding(state), Event::KnockOut) => state.knock_out().into(),
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Jumping(state), Event::Update) => state.update().into(),
@@ -436,7 +436,7 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn kill(self) -> RedHatBoyState<Falling> {
+        pub fn knock_out(self) -> RedHatBoyState<Falling> {
             RedHatBoyState {
                 context: self.context.reset_frame().stop(),
                 _state: Falling {},
@@ -457,7 +457,7 @@ mod red_hat_boy_states {
             JUMPING_FRAME_NAME
         }
 
-        pub fn kill(self) -> RedHatBoyState<Falling> {
+        pub fn knock_out(self) -> RedHatBoyState<Falling> {
             RedHatBoyState {
                 context: self.context.reset_frame().stop(),
                 _state: Falling {},
@@ -495,7 +495,7 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn kill(self) -> RedHatBoyState<Falling> {
+        pub fn knock_out(self) -> RedHatBoyState<Falling> {
             RedHatBoyState {
                 context: self.context.reset_frame().stop(),
                 _state: Falling {},
