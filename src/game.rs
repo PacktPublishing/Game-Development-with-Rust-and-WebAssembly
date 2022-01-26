@@ -226,6 +226,9 @@ impl RedHatBoyStateMachine {
             }
             (RedHatBoyStateMachine::Jumping(state), Event::KnockOut) => state.knock_out().into(),
             (RedHatBoyStateMachine::Sliding(state), Event::KnockOut) => state.knock_out().into(),
+            (RedHatBoyStateMachine::Sliding(state), Event::Land(position)) => {
+                state.land(position).into()
+            }
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Jumping(state), Event::Update) => state.update().into(),
@@ -360,18 +363,6 @@ mod red_hat_boy_states {
         fn update_context(&mut self, frames: u8) {
             self.context = self.context.update(frames);
         }
-
-        pub fn land(mut self, position: f32) -> RedHatBoyState<Running> {
-            // Make sure you note that this cannot use reset_frame, since sometimes you're going from running to running
-            if self.context.frame > RUNNING_FRAMES {
-                self.context = self.context.reset_frame();
-            }
-
-            RedHatBoyState {
-                context: self.context.set_on(position as i16),
-                _state: Running {},
-            }
-        }
     }
 
     #[derive(Copy, Clone)]
@@ -442,6 +433,13 @@ mod red_hat_boy_states {
                 _state: Falling {},
             }
         }
+
+        pub fn land(mut self, position: f32) -> RedHatBoyState<Running> {
+            RedHatBoyState {
+                context: self.context.set_on(position as i16),
+                _state: Running {},
+            }
+        }
     }
 
     #[derive(Copy, Clone)]
@@ -471,6 +469,13 @@ mod red_hat_boy_states {
                 JumpingEndState::Landing(self.land(FLOOR.into()))
             } else {
                 JumpingEndState::Jumping(self)
+            }
+        }
+
+        pub fn land(self, position: f32) -> RedHatBoyState<Running> {
+            RedHatBoyState {
+                context: self.context.reset_frame().set_on(position as i16),
+                _state: Running,
             }
         }
     }
@@ -509,6 +514,13 @@ mod red_hat_boy_states {
                 SlidingEndState::Running(self.stand())
             } else {
                 SlidingEndState::Sliding(self)
+            }
+        }
+
+        pub fn land(self, position: f32) -> RedHatBoyState<Sliding> {
+            RedHatBoyState {
+                context: self.context.set_on(position as i16),
+                _state: Sliding {},
             }
         }
     }
