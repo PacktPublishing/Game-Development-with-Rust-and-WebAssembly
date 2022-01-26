@@ -11,7 +11,7 @@ use crate::{
 
 const FLOOR: i16 = 479;
 const HEIGHT: i16 = 600;
-const HEIGHT_OFFSET: i16 = HEIGHT - FLOOR;
+const RHB_HEIGHT: i16 = HEIGHT - FLOOR;
 
 struct Platform {
     sheet: Sheet,
@@ -123,7 +123,7 @@ impl RedHatBoy {
     }
 
     fn land_on(&mut self, position: f32) {
-        let position = position - HEIGHT_OFFSET as f32;
+        let position = position - RHB_HEIGHT as f32;
         self.state_machine = self.state_machine.transition(Event::Land(position));
     }
 
