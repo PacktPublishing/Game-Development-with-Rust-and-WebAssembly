@@ -9,10 +9,6 @@ use crate::{
     engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 
-const FLOOR: i16 = 479;
-const HEIGHT: i16 = 600;
-const RHB_HEIGHT: i16 = HEIGHT - FLOOR;
-
 struct Platform {
     sheet: Sheet,
     image: HtmlImageElement,
@@ -123,7 +119,6 @@ impl RedHatBoy {
     }
 
     fn land_on(&mut self, position: f32) {
-        let position = position - RHB_HEIGHT as f32;
         self.state_machine = self.state_machine.transition(Event::Land(position));
     }
 
@@ -330,8 +325,10 @@ impl From<FallingEndState> for RedHatBoyStateMachine {
 }
 
 mod red_hat_boy_states {
-    use super::FLOOR;
     use crate::engine::Point;
+    const FLOOR: i16 = 479;
+    const HEIGHT: i16 = 600;
+    const RHB_HEIGHT: i16 = HEIGHT - FLOOR;
 
     const STARTING_POINT: i16 = -20;
     const IDLE_FRAMES: u8 = 29;
@@ -434,7 +431,7 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn land(mut self, position: f32) -> RedHatBoyState<Running> {
+        pub fn land(self, position: f32) -> RedHatBoyState<Running> {
             RedHatBoyState {
                 context: self.context.set_on(position as i16),
                 _state: Running {},
@@ -466,7 +463,7 @@ mod red_hat_boy_states {
             self.update_context(JUMPING_FRAMES);
 
             if self.context.position.y >= FLOOR {
-                JumpingEndState::Landing(self.land(FLOOR.into()))
+                JumpingEndState::Landing(self.land(HEIGHT.into()))
             } else {
                 JumpingEndState::Jumping(self)
             }
@@ -618,6 +615,7 @@ mod red_hat_boy_states {
         }
 
         fn set_on(mut self, position: i16) -> Self {
+            let position = position - RHB_HEIGHT;
             self.position.y = position;
             self
         }
