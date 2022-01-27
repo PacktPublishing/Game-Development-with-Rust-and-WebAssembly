@@ -214,15 +214,15 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
             (RedHatBoyStateMachine::Running(state), Event::KnockOut) => state.knock_out().into(),
             (RedHatBoyStateMachine::Running(state), Event::Land(position)) => {
-                state.land(position).into()
+                state.land_on(position).into()
             }
             (RedHatBoyStateMachine::Jumping(state), Event::Land(position)) => {
-                state.land(position).into()
+                state.land_on(position).into()
             }
             (RedHatBoyStateMachine::Jumping(state), Event::KnockOut) => state.knock_out().into(),
             (RedHatBoyStateMachine::Sliding(state), Event::KnockOut) => state.knock_out().into(),
             (RedHatBoyStateMachine::Sliding(state), Event::Land(position)) => {
-                state.land(position).into()
+                state.land_on(position).into()
             }
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
@@ -431,7 +431,7 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn land(self, position: f32) -> RedHatBoyState<Running> {
+        pub fn land_on(self, position: f32) -> RedHatBoyState<Running> {
             RedHatBoyState {
                 context: self.context.set_on(position as i16),
                 _state: Running {},
@@ -463,13 +463,13 @@ mod red_hat_boy_states {
             self.update_context(JUMPING_FRAMES);
 
             if self.context.position.y >= FLOOR {
-                JumpingEndState::Landing(self.land(HEIGHT.into()))
+                JumpingEndState::Landing(self.land_on(HEIGHT.into()))
             } else {
                 JumpingEndState::Jumping(self)
             }
         }
 
-        pub fn land(self, position: f32) -> RedHatBoyState<Running> {
+        pub fn land_on(self, position: f32) -> RedHatBoyState<Running> {
             RedHatBoyState {
                 context: self.context.reset_frame().set_on(position as i16),
                 _state: Running,
@@ -514,7 +514,7 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn land(self, position: f32) -> RedHatBoyState<Sliding> {
+        pub fn land_on(self, position: f32) -> RedHatBoyState<Sliding> {
             RedHatBoyState {
                 context: self.context.set_on(position as i16),
                 _state: Sliding {},
