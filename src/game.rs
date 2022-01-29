@@ -640,6 +640,9 @@ impl WalkTheDog {
     }
 }
 
+const LOW_PLATFORM: i16 = 420;
+const HIGH_PLATFORM: i16 = 375;
+const FIRST_PLATFORM: i16 = 370;
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
@@ -654,7 +657,10 @@ impl Game for WalkTheDog {
                 let platform = Platform::new(
                     platform_sheet.into_serde::<Sheet>()?,
                     engine::load_image("tiles.png").await?,
-                    Point { x: 370, y: 420 },
+                    Point {
+                        x: FIRST_PLATFORM,
+                        y: HIGH_PLATFORM,
+                    },
                 );
 
                 let rhb = RedHatBoy::new(
