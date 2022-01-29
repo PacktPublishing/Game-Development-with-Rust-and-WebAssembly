@@ -660,7 +660,7 @@ impl Game for WalkTheDog {
                     engine::load_image("tiles.png").await?,
                     Point {
                         x: FIRST_PLATFORM,
-                        y: HIGH_PLATFORM,
+                        y: LOW_PLATFORM,
                     },
                 );
 
