@@ -1,12 +1,11 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use engine::Image;
 use web_sys::HtmlImageElement;
 
 use self::red_hat_boy_states::*;
 use crate::{
     browser,
-    engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet},
+    engine::{self, Cell, Game, Image, KeyState, Point, Rect, Renderer, Sheet},
 };
 
 struct Platform {
