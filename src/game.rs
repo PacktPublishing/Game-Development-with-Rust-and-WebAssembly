@@ -343,7 +343,7 @@ mod red_hat_boy_states {
     const SLIDING_FRAME_NAME: &str = "Slide";
     const JUMPING_FRAME_NAME: &str = "Jump";
     const FALLING_FRAME_NAME: &str = "Dead";
-    const JUMP_SPEED: i16 = -22;
+    const JUMP_SPEED: i16 = -25;
     const GRAVITY: i16 = 1;
     const TERMINAL_VELOCITY: i16 = 20;
 
