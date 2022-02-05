@@ -646,7 +646,7 @@ impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
         match self {
             WalkTheDog::Loading => {
-                let rhb_sheet = browser::fetch_json("rhb.json").await?;
+                let sheet = browser::fetch_json("rhb.json").await?.into_serde()?;
                 let background = engine::load_image("BG.png").await?;
                 let stone = engine::load_image("Stone.png").await?;
 
@@ -661,10 +661,7 @@ impl Game for WalkTheDog {
                     },
                 );
 
-                let rhb = RedHatBoy::new(
-                    rhb_sheet.into_serde::<Sheet>()?,
-                    engine::load_image("rhb.png").await?,
-                );
+                let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
 
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
                     boy: rhb,
