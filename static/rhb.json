@@ -427,10 +427,10 @@
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.0",
-	"image": "rhb.png",
+	"image": "rhb_trimmed.png",
 	"format": "RGBA8888",
 	"size": {"w":1989,"h":366},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:01a5a3235f5ec1c18296a5f819719ebc:cbdcd04de8b7f111714940a6eac7b511:b8b4371eee3ea299615a1a80d5abace1$"
+	"smartupdate": "$TexturePacker:SmartUpdate:57b52b5f31c0bdebc34af7514c40da17:cbdcd04de8b7f111714940a6eac7b511:521d204853d0d2bba515b142dc3ea799$"
 }
 }
