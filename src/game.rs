@@ -329,7 +329,7 @@ mod red_hat_boy_states {
     use crate::engine::Point;
 
     const FLOOR: i16 = 479;
-    const RHB_HEIGHT: i16 = HEIGHT - FLOOR;
+    const PLAYER_HEIGHT: i16 = HEIGHT - FLOOR;
 
     const STARTING_POINT: i16 = -20;
     const IDLE_FRAMES: u8 = 29;
