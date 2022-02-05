@@ -8,6 +8,8 @@ use crate::{
     engine::{self, Cell, Game, Image, KeyState, Point, Rect, Renderer, Sheet},
 };
 
+const HEIGHT: i16 = 600;
+
 struct Platform {
     sheet: Sheet,
     image: HtmlImageElement,
@@ -324,9 +326,10 @@ impl From<FallingEndState> for RedHatBoyStateMachine {
 }
 
 mod red_hat_boy_states {
+    use super::HEIGHT;
     use crate::engine::Point;
+
     const FLOOR: i16 = 479;
-    const HEIGHT: i16 = 600;
     const RHB_HEIGHT: i16 = HEIGHT - FLOOR;
 
     const STARTING_POINT: i16 = -20;
@@ -719,7 +722,7 @@ impl Game for WalkTheDog {
         renderer.clear(&Rect {
             x: 0.0,
             y: 0.0,
-            width: 600.0,
+            width: HEIGHT as f32,
             height: 600.0,
         });
 
