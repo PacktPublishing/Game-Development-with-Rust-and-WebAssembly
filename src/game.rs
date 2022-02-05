@@ -531,7 +531,7 @@ mod red_hat_boy_states {
             FALLING_FRAME_NAME
         }
 
-        pub fn sleep(self) -> RedHatBoyState<KnockedOut> {
+        pub fn knock_out(self) -> RedHatBoyState<KnockedOut> {
             RedHatBoyState {
                 context: self.context,
                 _state: KnockedOut {},
@@ -541,7 +541,7 @@ mod red_hat_boy_states {
         pub fn update(mut self) -> FallingEndState {
             self.update_context(FALLING_FRAMES);
             if self.context.frame >= FALLING_FRAMES {
-                FallingEndState::KnockedOut(self.sleep())
+                FallingEndState::KnockedOut(self.knock_out())
             } else {
                 FallingEndState::Falling(self)
             }
