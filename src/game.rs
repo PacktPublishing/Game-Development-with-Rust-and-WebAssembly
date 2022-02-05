@@ -613,7 +613,7 @@ mod red_hat_boy_states {
         }
 
         fn set_on(mut self, position: i16) -> Self {
-            let position = position - RHB_HEIGHT;
+            let position = position - PLAYER_HEIGHT;
             self.position.y = position;
             self
         }
