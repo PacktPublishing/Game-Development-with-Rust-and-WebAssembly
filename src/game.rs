@@ -62,6 +62,49 @@ impl Platform {
     }
 }
 
+struct PlatformBuilderWithoutBoxes {
+    sheet: Rc<SpriteSheet>,
+    position: Point,
+}
+
+impl PlatformBuilderWithoutBoxes {
+    pub fn new(sheet: Rc<SpriteSheet>, position: Point) -> Self {
+        Self { sheet, position }
+    }
+
+    pub fn with_sprites(self, sprites: &[&str]) -> PlatformBuilderWithSprites {
+        PlatformBuilderWithSprites {
+            sheet: self.sheet,
+            position: self.position,
+            sprites: sprites.iter().map(|&s| s.to_owned()).collect(),
+            bounding_boxes: vec![],
+        }
+    }
+}
+
+struct PlatformBuilderWithSprites {
+    sheet: Rc<SpriteSheet>,
+    position: Point,
+    sprites: Vec<String>,
+    bounding_boxes: Vec<Rect>,
+}
+
+impl PlatformBuilderWithSprites {
+    pub fn with_bounding_boxes(mut self, bounding_boxes: &[Rect]) -> PlatformBuilderWithSprites {
+        self.bounding_boxes = bounding_boxes.to_owned();
+        self
+    }
+
+    pub fn build(self) -> Platform {
+        Platform {
+            sheet: self.sheet,
+            bounding_boxes: self.bounding_boxes,
+            destination_box: Rect::default(), // TEMP!
+            sprites: self.sprites,
+        }
+    }
+}
+
 impl Obstacle for Platform {
     fn check_intersection(&self, boy: &mut RedHatBoy) {
         for bounding_box in self.bounding_boxes() {
