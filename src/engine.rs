@@ -36,7 +36,7 @@ pub struct Point {
     pub y: i16,
 }
 
-#[derive(Default)]
+#[derive(Clone, Copy, Default)]
 pub struct Rect {
     pub position: Point,
     pub width: i16,
