@@ -8,7 +8,7 @@ const LOW_PLATFORM: i16 = 420;
 const HIGH_PLATFORM: i16 = 375;
 const FIRST_PLATFORM: i16 = 370;
 
-fn create_platform_bounding_boxes(destination_box: &Rect) -> Vec<Rect> {
+fn create_platform_bounding_boxes(destination_box: &Rect) -> [Rect; 3] {
     const X_OFFSET: i16 = 60;
     const END_HEIGHT: i16 = 54;
     let destination_box = destination_box;
@@ -28,7 +28,17 @@ fn create_platform_bounding_boxes(destination_box: &Rect) -> Vec<Rect> {
         END_HEIGHT,
     );
 
-    vec![bounding_box_one, bounding_box_two, bounding_box_three]
+    [bounding_box_one, bounding_box_two, bounding_box_three]
+}
+
+fn create_floating_platform(sprite_sheet: Rc<SpriteSheet>, position: Point) -> Platform {
+    let platform_builder = Platform::builder(sprite_sheet.clone(), position)
+        .with_sprites(&["13.png", "14.png", "15.png"]);
+
+    let bounding_boxes = create_platform_bounding_boxes(&platform_builder.destination_box());
+    platform_builder
+        .with_bounding_boxes(&bounding_boxes)
+        .build()
 }
 
 pub fn rock_and_platform(
@@ -36,21 +46,6 @@ pub fn rock_and_platform(
     sprite_sheet: Rc<SpriteSheet>,
     offset_x: i16,
 ) -> Vec<Box<dyn Obstacle>> {
-    let mut platform = Platform::new(
-        sprite_sheet.clone(),
-        Point {
-            x: offset_x + FIRST_PLATFORM,
-            y: LOW_PLATFORM,
-        },
-        vec![
-            "13.png".to_string(),
-            "14.png".to_string(),
-            "15.png".to_string(),
-        ],
-    );
-
-    platform.set_bounding_boxes(create_platform_bounding_boxes(&platform.destination_box()));
-
     vec![
         Box::new(Barrier::new(Image::new(
             stone,
@@ -59,17 +54,12 @@ pub fn rock_and_platform(
                 y: 546,
             },
         ))),
-        Box::new(Platform::new(
-            sprite_sheet.clone(),
+        Box::new(create_floating_platform(
+            sprite_sheet,
             Point {
                 x: offset_x + FIRST_PLATFORM,
                 y: LOW_PLATFORM,
             },
-            vec![
-                "13.png".to_string(),
-                "14.png".to_string(),
-                "15.png".to_string(),
-            ],
         )),
     ]
 }
@@ -87,17 +77,12 @@ pub fn platform_and_rock(
                 y: 546,
             },
         ))),
-        Box::new(Platform::new(
-            sprite_sheet.clone(),
+        Box::new(create_floating_platform(
+            sprite_sheet,
             Point {
                 x: offset_x + 200,
-                y: 400,
+                y: HIGH_PLATFORM,
             },
-            vec![
-                "13.png".to_string(),
-                "14.png".to_string(),
-                "15.png".to_string(),
-            ],
         )),
     ]
 }

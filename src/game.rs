@@ -28,46 +28,12 @@ pub struct Platform {
     sprites: Vec<String>,
 }
 
-impl Platform {
-    pub fn new(sheet: Rc<SpriteSheet>, position: Point, sprites: Vec<String>) -> Self {
-        let mut cells = sprites.iter().filter_map(|sprite| sheet.cell(sprite));
-        let first_cell = cells.next();
-        let height = first_cell.map_or(0, |cell| cell.frame.h);
-
-        let width =
-            cells.map(|cell| cell.frame.w).sum::<i16>() + first_cell.map_or(0, |cell| cell.frame.w);
-
-        Platform {
-            sheet: sheet.clone(),
-            destination_box: Rect::new(position, width, height),
-            bounding_boxes: vec![Rect::new(position, width, height)],
-            sprites,
-        }
-    }
-
-    pub fn set_bounding_boxes(&mut self, bounding_boxes: Vec<Rect>) {
-        self.bounding_boxes = bounding_boxes;
-    }
-
-    fn bounding_boxes(&self) -> &Vec<Rect> {
-        &self.bounding_boxes
-    }
-
-    pub fn destination_box(&self) -> &Rect {
-        &self.destination_box
-    }
-
-    fn position(&self) -> &Point {
-        &self.destination_box.position
-    }
-}
-
-struct PlatformBuilderWithoutBoxes {
+pub struct PlatformBuilderWithoutSprites {
     sheet: Rc<SpriteSheet>,
     position: Point,
 }
 
-impl PlatformBuilderWithoutBoxes {
+impl PlatformBuilderWithoutSprites {
     pub fn new(sheet: Rc<SpriteSheet>, position: Point) -> Self {
         Self { sheet, position }
     }
@@ -82,7 +48,7 @@ impl PlatformBuilderWithoutBoxes {
     }
 }
 
-struct PlatformBuilderWithSprites {
+pub struct PlatformBuilderWithSprites {
     sheet: Rc<SpriteSheet>,
     position: Point,
     sprites: Vec<String>,
@@ -95,13 +61,46 @@ impl PlatformBuilderWithSprites {
         self
     }
 
+    pub fn destination_box(&self) -> Rect {
+        let mut cells = self
+            .sprites
+            .iter()
+            .filter_map(|sprite| self.sheet.cell(sprite));
+        let first_cell = cells.next();
+        let height = first_cell.map_or(0, |cell| cell.frame.h);
+
+        let width =
+            cells.map(|cell| cell.frame.w).sum::<i16>() + first_cell.map_or(0, |cell| cell.frame.w);
+
+        Rect::new(self.position, width, height)
+    }
+
     pub fn build(self) -> Platform {
+        let destination_box = self.destination_box();
         Platform {
             sheet: self.sheet,
             bounding_boxes: self.bounding_boxes,
-            destination_box: Rect::default(), // TEMP!
+            destination_box,
             sprites: self.sprites,
         }
+    }
+}
+
+impl Platform {
+    pub fn builder(sheet: Rc<SpriteSheet>, position: Point) -> PlatformBuilderWithoutSprites {
+        PlatformBuilderWithoutSprites::new(sheet.clone(), position)
+    }
+
+    fn bounding_boxes(&self) -> &Vec<Rect> {
+        &self.bounding_boxes
+    }
+
+    pub fn destination_box(&self) -> &Rect {
+        &self.destination_box
+    }
+
+    fn position(&self) -> &Point {
+        &self.destination_box.position
     }
 }
 
