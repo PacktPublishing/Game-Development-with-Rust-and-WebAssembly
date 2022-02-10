@@ -8,36 +8,39 @@ const LOW_PLATFORM: i16 = 420;
 const HIGH_PLATFORM: i16 = 375;
 const FIRST_PLATFORM: i16 = 370;
 
-fn create_platform_bounding_boxes(destination_box: &Rect) -> [Rect; 3] {
-    const X_OFFSET: i16 = 60;
-    const END_HEIGHT: i16 = 54;
-    let destination_box = destination_box;
-    let bounding_box_one = Rect::new(destination_box.position, X_OFFSET, END_HEIGHT);
-
-    let bounding_box_two = Rect::new_from_x_y(
-        destination_box.x() + X_OFFSET,
-        destination_box.y(),
-        destination_box.width - (X_OFFSET * 2),
-        destination_box.height,
-    );
-
-    let bounding_box_three = Rect::new_from_x_y(
-        destination_box.x() + destination_box.width - X_OFFSET,
-        destination_box.y(),
-        X_OFFSET,
-        END_HEIGHT,
-    );
-
-    [bounding_box_one, bounding_box_two, bounding_box_three]
-}
+const FLOATING_PLATFORM_SPRITES: [&str; 3] = ["13.png", "14.png", "15.png"];
+const PLATFORM_WIDTH: i16 = 384;
+const PLATFORM_HEIGHT: i16 = 93;
+const PLATFORM_EDGE_WIDTH: i16 = 60;
+const PLATFORM_EDGE_HEIGHT: i16 = 54;
+const FLOATING_PLATFORM_BOUNDING_BOXES: [Rect; 3] = [
+    Rect {
+        position: Point { x: 0, y: 0 },
+        width: PLATFORM_EDGE_WIDTH,
+        height: PLATFORM_EDGE_HEIGHT,
+    },
+    Rect {
+        position: Point {
+            x: PLATFORM_EDGE_WIDTH,
+            y: 0,
+        },
+        width: PLATFORM_WIDTH - (PLATFORM_EDGE_WIDTH * 2),
+        height: PLATFORM_HEIGHT,
+    },
+    Rect {
+        position: Point {
+            x: PLATFORM_WIDTH - PLATFORM_EDGE_WIDTH,
+            y: 0,
+        },
+        width: PLATFORM_EDGE_WIDTH,
+        height: PLATFORM_EDGE_HEIGHT,
+    },
+];
 
 fn create_floating_platform(sprite_sheet: Rc<SpriteSheet>, position: Point) -> Platform {
-    let platform_builder = Platform::builder(sprite_sheet.clone(), position)
-        .with_sprites(&["13.png", "14.png", "15.png"]);
-
-    let bounding_boxes = create_platform_bounding_boxes(&platform_builder.destination_box());
-    platform_builder
-        .with_bounding_boxes(&bounding_boxes)
+    Platform::builder(sprite_sheet.clone(), position)
+        .with_sprites(&FLOATING_PLATFORM_SPRITES)
+        .with_bounding_boxes(&FLOATING_PLATFORM_BOUNDING_BOXES)
         .build()
 }
 

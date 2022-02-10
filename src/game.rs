@@ -21,13 +21,6 @@ pub trait Obstacle {
     fn right(&self) -> i16;
 }
 
-pub struct Platform {
-    sheet: Rc<SpriteSheet>,
-    bounding_boxes: Vec<Rect>,
-    destination_box: Rect,
-    sprites: Vec<String>,
-}
-
 pub struct PlatformBuilderWithoutSprites {
     sheet: Rc<SpriteSheet>,
     position: Point,
@@ -38,52 +31,75 @@ impl PlatformBuilderWithoutSprites {
         Self { sheet, position }
     }
 
-    pub fn with_sprites(self, sprites: &[&str]) -> PlatformBuilderWithSprites {
-        PlatformBuilderWithSprites {
+    pub fn with_sprites(self, sprites: &[&str]) -> PlatformBuilderWithSpriteNames {
+        PlatformBuilderWithSpriteNames {
             sheet: self.sheet,
             position: self.position,
-            sprites: sprites.iter().map(|&s| s.to_owned()).collect(),
-            bounding_boxes: vec![],
+            sprite_names: sprites.iter().map(|&s| s.to_owned()).collect(),
         }
     }
 }
 
-pub struct PlatformBuilderWithSprites {
+pub struct PlatformBuilderWithSpriteNames {
     sheet: Rc<SpriteSheet>,
     position: Point,
-    sprites: Vec<String>,
+    sprite_names: Vec<String>,
+}
+
+impl PlatformBuilderWithSpriteNames {
+    pub fn with_bounding_boxes(self, bounding_boxes: &[Rect]) -> PlatformBuilderReadyToBuild {
+        let sprites = self
+            .sprite_names
+            .iter()
+            .filter_map(|sprite_name| self.sheet.cell(sprite_name).cloned())
+            .collect::<Vec<Cell>>();
+
+        let owned_boxes = bounding_boxes
+            .iter()
+            .map(|bounding_box| {
+                Rect::new(
+                    Point {
+                        x: bounding_box.x() + self.position.x,
+                        y: bounding_box.y() + self.position.y,
+                    },
+                    bounding_box.width,
+                    bounding_box.height,
+                )
+            })
+            .collect();
+
+        PlatformBuilderReadyToBuild {
+            sheet: self.sheet,
+            position: self.position,
+            sprites,
+            bounding_boxes: owned_boxes,
+        }
+    }
+}
+
+pub struct PlatformBuilderReadyToBuild {
+    sheet: Rc<SpriteSheet>,
+    position: Point,
+    sprites: Vec<Cell>,
     bounding_boxes: Vec<Rect>,
 }
 
-impl PlatformBuilderWithSprites {
-    pub fn with_bounding_boxes(mut self, bounding_boxes: &[Rect]) -> PlatformBuilderWithSprites {
-        self.bounding_boxes = bounding_boxes.to_owned();
-        self
-    }
-
-    pub fn destination_box(&self) -> Rect {
-        let mut cells = self
-            .sprites
-            .iter()
-            .filter_map(|sprite| self.sheet.cell(sprite));
-        let first_cell = cells.next();
-        let height = first_cell.map_or(0, |cell| cell.frame.h);
-
-        let width =
-            cells.map(|cell| cell.frame.w).sum::<i16>() + first_cell.map_or(0, |cell| cell.frame.w);
-
-        Rect::new(self.position, width, height)
-    }
-
+impl PlatformBuilderReadyToBuild {
     pub fn build(self) -> Platform {
-        let destination_box = self.destination_box();
         Platform {
             sheet: self.sheet,
+            position: self.position,
             bounding_boxes: self.bounding_boxes,
-            destination_box,
             sprites: self.sprites,
         }
     }
+}
+
+pub struct Platform {
+    sheet: Rc<SpriteSheet>,
+    sprites: Vec<Cell>,
+    bounding_boxes: Vec<Rect>,
+    position: Point,
 }
 
 impl Platform {
@@ -95,24 +111,23 @@ impl Platform {
         &self.bounding_boxes
     }
 
-    pub fn destination_box(&self) -> &Rect {
-        &self.destination_box
-    }
-
     fn position(&self) -> &Point {
-        &self.destination_box.position
+        &self.position
     }
 }
 
 impl Obstacle for Platform {
     fn check_intersection(&self, boy: &mut RedHatBoy) {
-        for bounding_box in self.bounding_boxes() {
-            if boy.bounding_box().intersects(bounding_box) {
-                if boy.velocity_y() > 0 && boy.pos_y() < self.position().y {
-                    boy.land_on(bounding_box.y().into());
-                } else {
-                    boy.knock_out();
-                }
+        if let Some(box_to_land_on) = self
+            .bounding_boxes()
+            .iter()
+            .filter(|&bounding_box| boy.bounding_box().intersects(bounding_box))
+            .next()
+        {
+            if boy.velocity_y() > 0 && boy.pos_y() < self.position().y {
+                boy.land_on(box_to_land_on.y().into());
+            } else {
+                boy.knock_out();
             }
         }
     }
@@ -120,30 +135,31 @@ impl Obstacle for Platform {
     fn draw(&self, renderer: &Renderer) {
         let mut x = 0;
         self.sprites.iter().for_each(move |sprite| {
-            let cell = self
-                .sheet
-                .cell(sprite)
-                .expect("Cell does not exist on draw! Should be impossible!");
-
             self.sheet.draw(
                 renderer,
-                &Rect::new_from_x_y(cell.frame.x, cell.frame.y, cell.frame.w, cell.frame.h),
+                &Rect::new_from_x_y(
+                    sprite.frame.x,
+                    sprite.frame.y,
+                    sprite.frame.w,
+                    sprite.frame.h,
+                ),
+                // Just use position and the standard widths in the tileset
                 &Rect::new_from_x_y(
                     self.position().x + x,
                     self.position().y,
-                    cell.frame.w,
-                    cell.frame.h,
+                    sprite.frame.w,
+                    sprite.frame.h,
                 ),
             );
-            x += cell.frame.w;
+            x += sprite.frame.w;
         });
     }
 
     fn move_horizontally(&mut self, x: i16) {
-        self.destination_box.set_x(self.position().x + x);
-        for bounding_box in self.bounding_boxes.iter_mut() {
+        self.position.x += x;
+        self.bounding_boxes.iter_mut().for_each(|bounding_box| {
             bounding_box.set_x(bounding_box.position.x + x);
-        }
+        })
     }
 
     fn right(&self) -> i16 {
