@@ -8,6 +8,8 @@ const LOW_PLATFORM: i16 = 420;
 const HIGH_PLATFORM: i16 = 375;
 const FIRST_PLATFORM: i16 = 370;
 
+const STONE_ON_GROUND: i16 = 546;
+
 const FLOATING_PLATFORM_SPRITES: [&str; 3] = ["13.png", "14.png", "15.png"];
 const PLATFORM_WIDTH: i16 = 384;
 const PLATFORM_HEIGHT: i16 = 93;
@@ -49,12 +51,14 @@ pub fn rock_and_platform(
     sprite_sheet: Rc<SpriteSheet>,
     offset_x: i16,
 ) -> Vec<Box<dyn Obstacle>> {
+    const INITIAL_STONE_OFFSET: i16 = 150;
+
     vec![
         Box::new(Barrier::new(Image::new(
             stone,
             Point {
-                x: offset_x + 150,
-                y: 546,
+                x: offset_x + INITIAL_STONE_OFFSET,
+                y: STONE_ON_GROUND,
             },
         ))),
         Box::new(create_floating_platform(
@@ -72,18 +76,21 @@ pub fn platform_and_rock(
     sprite_sheet: Rc<SpriteSheet>,
     offset_x: i16,
 ) -> Vec<Box<dyn Obstacle>> {
+    const INITIAL_STONE_OFFSET: i16 = 400;
+    const INITIAL_PLATFORM_OFFSET: i16 = 200;
+
     vec![
         Box::new(Barrier::new(Image::new(
             stone,
             Point {
-                x: offset_x + 400,
-                y: 546,
+                x: offset_x + INITIAL_STONE_OFFSET,
+                y: STONE_ON_GROUND,
             },
         ))),
         Box::new(create_floating_platform(
             sprite_sheet,
             Point {
-                x: offset_x + 200,
+                x: offset_x + INITIAL_PLATFORM_OFFSET,
                 y: HIGH_PLATFORM,
             },
         )),
