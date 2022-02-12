@@ -104,7 +104,7 @@ pub struct Platform {
 
 impl Platform {
     pub fn builder(sheet: Rc<SpriteSheet>, position: Point) -> PlatformBuilderWithoutSprites {
-        PlatformBuilderWithoutSprites::new(sheet.clone(), position)
+        PlatformBuilderWithoutSprites::new(sheet, position)
     }
 
     fn bounding_boxes(&self) -> &Vec<Rect> {
@@ -121,8 +121,7 @@ impl Obstacle for Platform {
         if let Some(box_to_land_on) = self
             .bounding_boxes()
             .iter()
-            .filter(|&bounding_box| boy.bounding_box().intersects(bounding_box))
-            .next()
+            .find(|&bounding_box| boy.bounding_box().intersects(bounding_box))
         {
             if boy.velocity_y() > 0 && boy.pos_y() < self.position().y {
                 boy.land_on(box_to_land_on.y().into());
@@ -886,6 +885,6 @@ fn rightmost(obstacle_list: &Vec<Box<dyn Obstacle>>) -> i16 {
     obstacle_list
         .iter()
         .map(|obstacle| obstacle.right())
-        .max_by(|x, y| x.cmp(&y))
+        .max_by(|x, y| x.cmp(y))
         .unwrap_or(0)
 }
