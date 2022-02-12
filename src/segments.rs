@@ -46,7 +46,7 @@ fn create_floating_platform(sprite_sheet: Rc<SpriteSheet>, position: Point) -> P
         .build()
 }
 
-pub fn rock_and_platform(
+pub fn stone_and_platform(
     stone: HtmlImageElement,
     sprite_sheet: Rc<SpriteSheet>,
     offset_x: i16,
@@ -71,7 +71,7 @@ pub fn rock_and_platform(
     ]
 }
 
-pub fn platform_and_rock(
+pub fn platform_and_stone(
     stone: HtmlImageElement,
     sprite_sheet: Rc<SpriteSheet>,
     offset_x: i16,

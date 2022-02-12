@@ -770,7 +770,7 @@ impl Game for WalkTheDog {
                 let rhb = RedHatBoy::new(sheet, engine::load_image("rhb.png").await?);
 
                 let background_width = background.width() as i16;
-                let starting_obstacles = rock_and_platform(stone.clone(), sprite_sheet.clone(), 0);
+                let starting_obstacles = stone_and_platform(stone.clone(), sprite_sheet.clone(), 0);
                 let timeline = rightmost(&starting_obstacles);
 
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
@@ -864,12 +864,12 @@ impl Walk {
         let next_segment = rng.gen_range(0..2);
 
         let mut next_obstacles = match next_segment {
-            0 => rock_and_platform(
+            0 => stone_and_platform(
                 self.stone.clone(),
                 self.obstacle_sheet.clone(),
                 self.timeline + 20,
             ),
-            1 => platform_and_rock(
+            1 => platform_and_stone(
                 self.stone.clone(),
                 self.obstacle_sheet.clone(),
                 self.timeline + 20,
