@@ -226,9 +226,9 @@ pub struct KeyState {
 
 impl KeyState {
     fn new() -> Self {
-        return KeyState {
+        KeyState {
             pressed_keys: HashMap::new(),
-        };
+        }
     }
 
     pub fn is_pressed(&self, code: &str) -> bool {
