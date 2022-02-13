@@ -40,10 +40,12 @@ const FLOATING_PLATFORM_BOUNDING_BOXES: [Rect; 3] = [
 ];
 
 fn create_floating_platform(sprite_sheet: Rc<SpriteSheet>, position: Point) -> Platform {
-    Platform::builder(sprite_sheet, position)
-        .with_sprites(&FLOATING_PLATFORM_SPRITES)
-        .with_bounding_boxes(&FLOATING_PLATFORM_BOUNDING_BOXES)
-        .build()
+    Platform::new(
+        sprite_sheet,
+        position,
+        &FLOATING_PLATFORM_SPRITES,
+        &FLOATING_PLATFORM_BOUNDING_BOXES,
+    )
 }
 
 pub fn stone_and_platform(
