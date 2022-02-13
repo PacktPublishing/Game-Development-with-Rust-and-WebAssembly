@@ -21,80 +21,6 @@ pub trait Obstacle {
     fn right(&self) -> i16;
 }
 
-pub struct PlatformBuilderWithoutSprites {
-    sheet: Rc<SpriteSheet>,
-    position: Point,
-}
-
-impl PlatformBuilderWithoutSprites {
-    pub fn new(sheet: Rc<SpriteSheet>, position: Point) -> Self {
-        Self { sheet, position }
-    }
-
-    pub fn with_sprites(self, sprites: &[&str]) -> PlatformBuilderWithSpriteNames {
-        PlatformBuilderWithSpriteNames {
-            sheet: self.sheet,
-            position: self.position,
-            sprite_names: sprites.iter().map(|&s| s.to_owned()).collect(),
-        }
-    }
-}
-
-pub struct PlatformBuilderWithSpriteNames {
-    sheet: Rc<SpriteSheet>,
-    position: Point,
-    sprite_names: Vec<String>,
-}
-
-impl PlatformBuilderWithSpriteNames {
-    pub fn with_bounding_boxes(self, bounding_boxes: &[Rect]) -> PlatformBuilderReadyToBuild {
-        let sprites = self
-            .sprite_names
-            .iter()
-            .filter_map(|sprite_name| self.sheet.cell(sprite_name).cloned())
-            .collect::<Vec<Cell>>();
-
-        let owned_boxes = bounding_boxes
-            .iter()
-            .map(|bounding_box| {
-                Rect::new(
-                    Point {
-                        x: bounding_box.x() + self.position.x,
-                        y: bounding_box.y() + self.position.y,
-                    },
-                    bounding_box.width,
-                    bounding_box.height,
-                )
-            })
-            .collect();
-
-        PlatformBuilderReadyToBuild {
-            sheet: self.sheet,
-            position: self.position,
-            sprites,
-            bounding_boxes: owned_boxes,
-        }
-    }
-}
-
-pub struct PlatformBuilderReadyToBuild {
-    sheet: Rc<SpriteSheet>,
-    position: Point,
-    sprites: Vec<Cell>,
-    bounding_boxes: Vec<Rect>,
-}
-
-impl PlatformBuilderReadyToBuild {
-    pub fn build(self) -> Platform {
-        Platform {
-            sheet: self.sheet,
-            position: self.position,
-            bounding_boxes: self.bounding_boxes,
-            sprites: self.sprites,
-        }
-    }
-}
-
 pub struct Platform {
     sheet: Rc<SpriteSheet>,
     sprites: Vec<Cell>,
@@ -103,8 +29,37 @@ pub struct Platform {
 }
 
 impl Platform {
-    pub fn builder(sheet: Rc<SpriteSheet>, position: Point) -> PlatformBuilderWithoutSprites {
-        PlatformBuilderWithoutSprites::new(sheet, position)
+    pub fn new(
+        sheet: Rc<SpriteSheet>,
+        position: Point,
+        sprite_names: &[&str],
+        bounding_boxes: &[Rect],
+    ) -> Self {
+        let sprites = sprite_names
+            .iter()
+            .filter_map(|sprite_name| sheet.cell(sprite_name).cloned())
+            .collect::<Vec<Cell>>();
+
+        let bounding_boxes = bounding_boxes
+            .iter()
+            .map(|bounding_box| {
+                Rect::new(
+                    Point {
+                        x: bounding_box.x() + position.x,
+                        y: bounding_box.y() + position.y,
+                    },
+                    bounding_box.width,
+                    bounding_box.height,
+                )
+            })
+            .collect();
+
+        Platform {
+            sheet,
+            position,
+            sprites,
+            bounding_boxes,
+        }
     }
 
     fn bounding_boxes(&self) -> &Vec<Rect> {
