@@ -14,6 +14,7 @@ use crate::{
 
 const HEIGHT: i16 = 600;
 const OBSTACLE_BUFFER: i16 = 20;
+const TIMELINE_MINIMUM: i16 = 1000;
 
 pub trait Obstacle {
     fn check_intersection(&self, boy: &mut RedHatBoy);
@@ -786,7 +787,7 @@ impl Game for WalkTheDog {
                 obstacle.check_intersection(&mut walk.boy);
             });
 
-            if walk.timeline < 1000 {
+            if walk.timeline < TIMELINE_MINIMUM {
                 walk.generate_next_segment()
             } else {
                 walk.timeline += walking_speed;
