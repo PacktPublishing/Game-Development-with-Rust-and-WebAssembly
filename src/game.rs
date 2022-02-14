@@ -13,6 +13,7 @@ use crate::{
 };
 
 const HEIGHT: i16 = 600;
+const OBSTACLE_BUFFER: i16 = 20;
 
 pub trait Obstacle {
     fn check_intersection(&self, boy: &mut RedHatBoy);
@@ -822,7 +823,7 @@ impl Walk {
             0 => stone_and_platform(
                 self.stone.clone(),
                 self.obstacle_sheet.clone(),
-                self.timeline + 20,
+                self.timeline + OBSTACLE_BUFFER,
             ),
             1 => platform_and_stone(
                 self.stone.clone(),
