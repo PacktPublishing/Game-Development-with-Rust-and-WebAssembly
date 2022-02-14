@@ -88,7 +88,7 @@ impl Obstacle for Platform {
 
     fn draw(&self, renderer: &Renderer) {
         let mut x = 0;
-        self.sprites.iter().for_each(move |sprite| {
+        self.sprites.iter().for_each(|sprite| {
             self.sheet.draw(
                 renderer,
                 &Rect::new_from_x_y(
