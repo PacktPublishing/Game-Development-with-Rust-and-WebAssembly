@@ -829,7 +829,7 @@ impl Walk {
             1 => platform_and_stone(
                 self.stone.clone(),
                 self.obstacle_sheet.clone(),
-                self.timeline + 20,
+                self.timeline + OBSTACLE_BUFFER,
             ),
             _ => vec![],
         };
