@@ -780,10 +780,10 @@ impl Game for WalkTheDog {
 
             walk.obstacles.retain(|obstacle| obstacle.right() > 0);
 
-            for (_, obstacle) in walk.obstacles.iter_mut().enumerate() {
+            walk.obstacles.iter_mut().for_each(|obstacle| {
                 obstacle.move_horizontally(walking_speed);
                 obstacle.check_intersection(&mut walk.boy);
-            }
+            });
 
             if walk.timeline < 1000 {
                 walk.generate_next_segment()
