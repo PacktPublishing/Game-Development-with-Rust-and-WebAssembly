@@ -81,7 +81,7 @@ impl Obstacle for Platform {
             .find(|&bounding_box| boy.bounding_box().intersects(bounding_box))
         {
             if boy.velocity_y() > 0 && boy.pos_y() < self.position().y {
-                boy.land_on(box_to_land_on.y().into());
+                boy.land_on(box_to_land_on.y());
             } else {
                 boy.knock_out();
             }
@@ -157,7 +157,7 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.transition(Event::KnockOut);
     }
 
-    fn land_on(&mut self, position: f32) {
+    fn land_on(&mut self, position: i16) {
         self.state_machine = self.state_machine.transition(Event::Land(position));
     }
 
@@ -243,7 +243,7 @@ pub enum Event {
     Jump,
     Slide,
     KnockOut,
-    Land(f32),
+    Land(i16),
     Update,
 }
 
@@ -471,9 +471,9 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn land_on(self, position: f32) -> RedHatBoyState<Running> {
+        pub fn land_on(self, position: i16) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context.set_on(position as i16),
+                context: self.context.set_on(position),
                 _state: Running {},
             }
         }
@@ -509,9 +509,9 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn land_on(self, position: f32) -> RedHatBoyState<Running> {
+        pub fn land_on(self, position: i16) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context.reset_frame().set_on(position as i16),
+                context: self.context.reset_frame().set_on(position),
                 _state: Running,
             }
         }
@@ -554,9 +554,9 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn land_on(self, position: f32) -> RedHatBoyState<Sliding> {
+        pub fn land_on(self, position: i16) -> RedHatBoyState<Sliding> {
             RedHatBoyState {
-                context: self.context.set_on(position as i16),
+                context: self.context.set_on(position),
                 _state: Sliding {},
             }
         }

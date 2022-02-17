@@ -82,10 +82,6 @@ impl Rect {
     pub fn set_x(&mut self, x: i16) {
         self.position.x = x
     }
-
-    pub fn adjust_x(&mut self, adjustment: i16) {
-        self.position.x += adjustment;
-    }
 }
 
 pub struct Renderer {
