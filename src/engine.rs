@@ -44,7 +44,7 @@ pub struct Rect {
 }
 
 impl Rect {
-    pub fn new(position: Point, width: i16, height: i16) -> Self {
+    pub const fn new(position: Point, width: i16, height: i16) -> Self {
         Rect {
             position,
             width,
@@ -52,7 +52,7 @@ impl Rect {
         }
     }
 
-    pub fn new_from_x_y(x: i16, y: i16, width: i16, height: i16) -> Self {
+    pub const fn new_from_x_y(x: i16, y: i16, width: i16, height: i16) -> Self {
         Rect::new(Point { x, y }, width, height)
     }
 
@@ -71,16 +71,16 @@ impl Rect {
         self.y() + self.height
     }
 
+    pub fn set_x(&mut self, x: i16) {
+        self.position.x = x
+    }
+
     pub fn x(&self) -> i16 {
         self.position.x
     }
 
     pub fn y(&self) -> i16 {
         self.position.y
-    }
-
-    pub fn set_x(&mut self, x: i16) {
-        self.position.x = x
     }
 }
 
@@ -306,7 +306,7 @@ impl Image {
     }
 
     pub fn move_horizontally(&mut self, distance: i16) {
-        self.set_x(self.bounding_box.position.x + distance);
+        self.set_x(self.bounding_box.x() + distance);
     }
 
     pub fn set_x(&mut self, x: i16) {

@@ -16,27 +16,19 @@ const PLATFORM_HEIGHT: i16 = 93;
 const PLATFORM_EDGE_WIDTH: i16 = 60;
 const PLATFORM_EDGE_HEIGHT: i16 = 54;
 const FLOATING_PLATFORM_BOUNDING_BOXES: [Rect; 3] = [
-    Rect {
-        position: Point { x: 0, y: 0 },
-        width: PLATFORM_EDGE_WIDTH,
-        height: PLATFORM_EDGE_HEIGHT,
-    },
-    Rect {
-        position: Point {
-            x: PLATFORM_EDGE_WIDTH,
-            y: 0,
-        },
-        width: PLATFORM_WIDTH - (PLATFORM_EDGE_WIDTH * 2),
-        height: PLATFORM_HEIGHT,
-    },
-    Rect {
-        position: Point {
-            x: PLATFORM_WIDTH - PLATFORM_EDGE_WIDTH,
-            y: 0,
-        },
-        width: PLATFORM_EDGE_WIDTH,
-        height: PLATFORM_EDGE_HEIGHT,
-    },
+    Rect::new_from_x_y(0, 0, PLATFORM_EDGE_WIDTH, PLATFORM_EDGE_HEIGHT),
+    Rect::new_from_x_y(
+        PLATFORM_EDGE_WIDTH,
+        0,
+        PLATFORM_WIDTH - (PLATFORM_EDGE_WIDTH * 2),
+        PLATFORM_HEIGHT,
+    ),
+    Rect::new_from_x_y(
+        PLATFORM_WIDTH - PLATFORM_EDGE_WIDTH,
+        0,
+        PLATFORM_EDGE_WIDTH,
+        PLATFORM_EDGE_HEIGHT,
+    ),
 ];
 
 fn create_floating_platform(sprite_sheet: Rc<SpriteSheet>, position: Point) -> Platform {
