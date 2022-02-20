@@ -13,8 +13,8 @@ use crate::{
 };
 
 const HEIGHT: i16 = 600;
-const OBSTACLE_BUFFER: i16 = 20;
 const TIMELINE_MINIMUM: i16 = 1000;
+const OBSTACLE_BUFFER: i16 = 20;
 
 pub trait Obstacle {
     fn check_intersection(&self, boy: &mut RedHatBoy);
@@ -40,16 +40,14 @@ impl Platform {
         let sprites = sprite_names
             .iter()
             .filter_map(|sprite_name| sheet.cell(sprite_name).cloned())
-            .collect::<Vec<Cell>>();
+            .collect();
 
         let bounding_boxes = bounding_boxes
             .iter()
             .map(|bounding_box| {
-                Rect::new(
-                    Point {
-                        x: bounding_box.x() + position.x,
-                        y: bounding_box.y() + position.y,
-                    },
+                Rect::new_from_x_y(
+                    bounding_box.x() + position.x,
+                    bounding_box.y() + position.y,
                     bounding_box.width,
                     bounding_box.height,
                 )
@@ -67,10 +65,6 @@ impl Platform {
     fn bounding_boxes(&self) -> &Vec<Rect> {
         &self.bounding_boxes
     }
-
-    fn position(&self) -> &Point {
-        &self.position
-    }
 }
 
 impl Obstacle for Platform {
@@ -80,7 +74,7 @@ impl Obstacle for Platform {
             .iter()
             .find(|&bounding_box| boy.bounding_box().intersects(bounding_box))
         {
-            if boy.velocity_y() > 0 && boy.pos_y() < self.position().y {
+            if boy.velocity_y() > 0 && boy.pos_y() < self.position.y {
                 boy.land_on(box_to_land_on.y());
             } else {
                 boy.knock_out();
@@ -101,8 +95,8 @@ impl Obstacle for Platform {
                 ),
                 // Just use position and the standard widths in the tileset
                 &Rect::new_from_x_y(
-                    self.position().x + x,
-                    self.position().y,
+                    self.position.x + x,
+                    self.position.y,
                     sprite.frame.w,
                     sprite.frame.h,
                 ),
@@ -672,6 +666,33 @@ pub struct Walk {
     timeline: i16,
 }
 
+impl Walk {
+    fn velocity(&self) -> i16 {
+        -self.boy.walking_speed()
+    }
+
+    fn generate_next_segment(&mut self) {
+        let mut rng = thread_rng();
+        let next_segment = rng.gen_range(0..2);
+
+        let mut next_obstacles = match next_segment {
+            0 => stone_and_platform(
+                self.stone.clone(),
+                self.obstacle_sheet.clone(),
+                self.timeline + OBSTACLE_BUFFER,
+            ),
+            1 => platform_and_stone(
+                self.stone.clone(),
+                self.obstacle_sheet.clone(),
+                self.timeline + OBSTACLE_BUFFER,
+            ),
+            _ => vec![],
+        };
+        self.timeline = rightmost(&next_obstacles);
+        self.obstacles.append(&mut next_obstacles);
+    }
+}
+
 impl WalkTheDog {
     pub fn new() -> Self {
         WalkTheDog::Loading {}
@@ -768,10 +789,10 @@ impl Game for WalkTheDog {
 
             walk.boy.update();
 
-            let walking_speed = walk.velocity();
+            let velocity = walk.velocity();
             let [first_background, second_background] = &mut walk.backgrounds;
-            first_background.move_horizontally(walking_speed);
-            second_background.move_horizontally(walking_speed);
+            first_background.move_horizontally(velocity);
+            second_background.move_horizontally(velocity);
 
             if first_background.right() < 0 {
                 first_background.set_x(second_background.right());
@@ -783,14 +804,14 @@ impl Game for WalkTheDog {
             walk.obstacles.retain(|obstacle| obstacle.right() > 0);
 
             walk.obstacles.iter_mut().for_each(|obstacle| {
-                obstacle.move_horizontally(walking_speed);
+                obstacle.move_horizontally(velocity);
                 obstacle.check_intersection(&mut walk.boy);
             });
 
             if walk.timeline < TIMELINE_MINIMUM {
-                walk.generate_next_segment()
+                walk.generate_next_segment();
             } else {
-                walk.timeline += walking_speed;
+                walk.timeline += velocity;
             }
         }
     }
@@ -811,37 +832,10 @@ impl Game for WalkTheDog {
     }
 }
 
-impl Walk {
-    fn velocity(&self) -> i16 {
-        -self.boy.walking_speed()
-    }
-
-    fn generate_next_segment(&mut self) {
-        let mut rng = thread_rng();
-        let next_segment = rng.gen_range(0..2);
-
-        let mut next_obstacles = match next_segment {
-            0 => stone_and_platform(
-                self.stone.clone(),
-                self.obstacle_sheet.clone(),
-                self.timeline + OBSTACLE_BUFFER,
-            ),
-            1 => platform_and_stone(
-                self.stone.clone(),
-                self.obstacle_sheet.clone(),
-                self.timeline + OBSTACLE_BUFFER,
-            ),
-            _ => vec![],
-        };
-        self.timeline = rightmost(&next_obstacles);
-        self.obstacles.append(&mut next_obstacles);
-    }
-}
-
 fn rightmost(obstacle_list: &Vec<Box<dyn Obstacle>>) -> i16 {
     obstacle_list
         .iter()
         .map(|obstacle| obstacle.right())
-        .max_by(|x, y| x.cmp(y))
+        .max_by(|x, y| x.cmp(&y))
         .unwrap_or(0)
 }
