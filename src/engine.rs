@@ -179,7 +179,7 @@ pub struct GameLoop {
 type SharedLoopClosure = Rc<RefCell<Option<LoopClosure>>>;
 
 impl GameLoop {
-    pub async fn start(game: impl Game + 'static) -> Result<()> {
+    pub async fn start(game: impl Game) -> Result<()> {
         let mut keyevent_receiver = prepare_input()?;
         let mut game = game.initialize().await?;
 
