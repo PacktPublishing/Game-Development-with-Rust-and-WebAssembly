@@ -22,20 +22,6 @@ fn connect_with_audio_node(
         .map_err(|err| anyhow!("Error connecting audio source to destination {:#?}", err))
 }
 
-pub async fn decode_audio_data(
-    ctx: &AudioContext,
-    array_buffer: &ArrayBuffer,
-) -> Result<AudioBuffer> {
-    JsFuture::from(
-        ctx.decode_audio_data(&array_buffer)
-            .map_err(|err| anyhow!("Could not decode audio from array buffer {:#?}", err))?,
-    )
-    .await
-    .map_err(|err| anyhow!("Could not convert promise to future {:#?}", err))?
-    .dyn_into()
-    .map_err(|err| anyhow!("Could not cast into AudioBuffer {:#?}", err))
-}
-
 fn create_track_source(ctx: &AudioContext, buffer: &AudioBuffer) -> Result<AudioBufferSourceNode> {
     let track_source = create_buffer_source(ctx)?;
     track_source.set_buffer(Some(&buffer));
@@ -50,11 +36,25 @@ pub enum LOOPING {
 
 pub fn play_sound(ctx: &AudioContext, buffer: &AudioBuffer, looping: LOOPING) -> Result<()> {
     let track_source = create_track_source(ctx, buffer)?;
-    if let LOOPING::YES = looping {
+    if matches!(looping, LOOPING::YES) {
         track_source.set_loop(true);
     }
 
     track_source
         .start()
         .map_err(|err| anyhow!("Could not start sound! {:#?}", err))
+}
+
+pub async fn decode_audio_data(
+    ctx: &AudioContext,
+    array_buffer: &ArrayBuffer,
+) -> Result<AudioBuffer> {
+    JsFuture::from(
+        ctx.decode_audio_data(&array_buffer)
+            .map_err(|err| anyhow!("Could not decode audio from array buffer {:#?}", err))?,
+    )
+    .await
+    .map_err(|err| anyhow!("Could not convert promise to future {:#?}", err))?
+    .dyn_into()
+    .map_err(|err| anyhow!("Could not cast into AudioBuffer {:#?}", err))
 }
