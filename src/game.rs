@@ -59,71 +59,47 @@ impl WalkTheDogStateMachine {
 
 struct WalkTheDogState<S> {
     _state: S,
+    walk: Walk,
 }
+
+struct Ready;
 
 impl WalkTheDogState<Ready> {
     fn new(walk: Walk) -> WalkTheDogState<Ready> {
         WalkTheDogState {
-            _state: Ready { walk },
+            _state: Ready,
+            walk,
         }
-    }
-
-    fn run_right(&mut self) {
-        self._state.run_right();
-    }
-
-    fn draw(&self, renderer: &Renderer) {
-        self._state.draw(renderer);
-    }
-
-    fn update(mut self, keystate: &KeyState) -> WalkTheDogStateMachine {
-        self._state.update();
-        if keystate.is_pressed("ArrowRight") {
-            WalkTheDogStateMachine::Walking(self.into())
-        } else {
-            WalkTheDogStateMachine::Ready(self)
-        }
-    }
-}
-
-struct Ready {
-    walk: Walk,
-}
-
-impl Ready {
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer)
     }
 
     fn run_right(&mut self) {
         self.walk.boy.run_right();
     }
 
-    fn update(&mut self) {
-        self.walk.boy.update();
-    }
-}
+    fn start_running(mut self) -> WalkTheDogState<Walking> {
+        self.run_right();
 
-impl WalkTheDogState<Walking> {
+        WalkTheDogState {
+            _state: Walking,
+            walk: self.walk,
+        }
+    }
+
     fn draw(&self, renderer: &Renderer) {
-        self._state.draw(renderer);
+        self.walk.draw(renderer)
     }
 
     fn update(mut self, keystate: &KeyState) -> WalkTheDogStateMachine {
-        self._state.update(keystate);
-        if self._state.knocked_out() {
-            WalkTheDogStateMachine::GameOver(self.into())
+        self.walk.boy.update();
+        if keystate.is_pressed("ArrowRight") {
+            WalkTheDogStateMachine::Walking(self.start_running())
         } else {
-            WalkTheDogStateMachine::Walking(self)
+            WalkTheDogStateMachine::Ready(self)
         }
     }
 }
 
-struct Walking {
-    walk: Walk,
-}
-
-impl Walking {
+impl WalkTheDogState<Walking> {
     fn knocked_out(&self) -> bool {
         self.walk.boy.knocked_out()
     }
@@ -132,7 +108,22 @@ impl Walking {
         self.walk.draw(renderer)
     }
 
-    fn update(&mut self, keystate: &KeyState) {
+    fn end_game(self) -> WalkTheDogState<GameOver> {
+        let receiver = browser::draw_ui("<button id='new_game'>New Game</button>")
+            .and_then(|_unit| browser::find_html_element_by_id("new_game"))
+            .map(|element| engine::add_click_handler(element))
+            .unwrap();
+
+        WalkTheDogState {
+            _state: GameOver {
+                new_game_event: receiver,
+            },
+
+            walk: self.walk,
+        }
+    }
+
+    fn update(mut self, keystate: &KeyState) -> WalkTheDogStateMachine {
         if keystate.is_pressed("Space") {
             self.walk.boy.jump();
         }
@@ -167,25 +158,41 @@ impl Walking {
         } else {
             self.walk.timeline += walking_speed;
         }
+
+        if self.knocked_out() {
+            WalkTheDogStateMachine::GameOver(self.end_game())
+        } else {
+            WalkTheDogStateMachine::Walking(self)
+        }
     }
 }
 
+struct Walking;
+
 impl WalkTheDogState<GameOver> {
     fn draw(&self, renderer: &Renderer) {
-        self._state.draw(renderer);
+        self.walk.draw(renderer)
     }
 
     fn update(mut self) -> WalkTheDogStateMachine {
         if self._state.new_game_pressed() {
-            WalkTheDogStateMachine::Ready(self.into())
+            WalkTheDogStateMachine::Ready(self.new_game())
         } else {
             WalkTheDogStateMachine::GameOver(self)
+        }
+    }
+
+    fn new_game(self) -> WalkTheDogState<Ready> {
+        browser::hide_ui();
+
+        WalkTheDogState {
+            _state: Ready,
+            walk: Walk::reset(self.walk),
         }
     }
 }
 
 struct GameOver {
-    walk: Walk,
     new_game_event: UnboundedReceiver<()>,
 }
 
@@ -196,49 +203,23 @@ impl GameOver {
             _ => false,
         }
     }
-
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer)
-    }
 }
 
-impl From<WalkTheDogState<Ready>> for WalkTheDogState<Walking> {
-    fn from(mut state: WalkTheDogState<Ready>) -> Self {
-        state.run_right();
-
-        WalkTheDogState {
-            _state: Walking {
-                walk: state._state.walk,
-            },
-        }
-    }
-}
-
-impl From<WalkTheDogState<Walking>> for WalkTheDogState<GameOver> {
+impl From<WalkTheDogState<Walking>> for WalkTheDogStateMachine {
     fn from(state: WalkTheDogState<Walking>) -> Self {
-        let receiver = browser::draw_ui("<button id='new_game'>New Game</button>")
-            .and_then(|_unit| browser::find_html_element_by_id("new_game"))
-            .map(|element| engine::add_click_handler(element))
-            .unwrap();
-
-        WalkTheDogState {
-            _state: GameOver {
-                walk: state._state.walk,
-                new_game_event: receiver,
-            },
-        }
+        WalkTheDogStateMachine::Walking(state)
     }
 }
 
-impl From<WalkTheDogState<GameOver>> for WalkTheDogState<Ready> {
+impl From<WalkTheDogState<GameOver>> for WalkTheDogStateMachine {
     fn from(state: WalkTheDogState<GameOver>) -> Self {
-        browser::hide_ui();
+        WalkTheDogStateMachine::GameOver(state)
+    }
+}
 
-        WalkTheDogState {
-            _state: Ready {
-                walk: Walk::reset(state._state.walk),
-            },
-        }
+impl From<WalkTheDogState<Ready>> for WalkTheDogStateMachine {
+    fn from(state: WalkTheDogState<Ready>) -> Self {
+        WalkTheDogStateMachine::Ready(state)
     }
 }
 
