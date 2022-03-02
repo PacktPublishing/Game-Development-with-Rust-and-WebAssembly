@@ -36,6 +36,10 @@ enum WalkTheDogStateMachine {
 }
 
 impl WalkTheDogStateMachine {
+    fn new(walk: Walk) -> Self {
+        WalkTheDogStateMachine::Ready(WalkTheDogState::new(walk))
+    }
+
     fn update(self, keystate: &KeyState) -> Self {
         match self {
             WalkTheDogStateMachine::Ready(state) => state.update(keystate),
@@ -1027,7 +1031,7 @@ impl Game for WalkTheDog {
                 let starting_obstacles = stone_and_platform(stone.clone(), sprite_sheet.clone(), 0);
                 let timeline = rightmost(&starting_obstacles);
 
-                let machine = WalkTheDogStateMachine::Ready(WalkTheDogState::new(Walk {
+                let machine = WalkTheDogStateMachine::new(Walk {
                     boy: rhb,
                     backgrounds: [
                         Image::new(background.clone(), Point { x: 0, y: 0 }),
@@ -1043,7 +1047,7 @@ impl Game for WalkTheDog {
                     obstacle_sheet: sprite_sheet,
                     stone,
                     timeline,
-                }));
+                });
 
                 Ok(Box::new(WalkTheDog {
                     machine: Some(machine),
