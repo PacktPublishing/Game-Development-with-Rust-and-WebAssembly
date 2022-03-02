@@ -42,9 +42,9 @@ impl WalkTheDogStateMachine {
 
     fn update(self, keystate: &KeyState) -> Self {
         match self {
-            WalkTheDogStateMachine::Ready(state) => state.update(keystate),
-            WalkTheDogStateMachine::Walking(state) => state.update(keystate),
-            WalkTheDogStateMachine::GameOver(state) => state.update(),
+            WalkTheDogStateMachine::Ready(state) => state.update(keystate).into(),
+            WalkTheDogStateMachine::Walking(state) => state.update(keystate).into(),
+            WalkTheDogStateMachine::GameOver(state) => state.update().into(),
         }
     }
 
@@ -89,15 +89,31 @@ impl WalkTheDogState<Ready> {
         self.walk.draw(renderer)
     }
 
-    fn update(mut self, keystate: &KeyState) -> WalkTheDogStateMachine {
+    fn update(mut self, keystate: &KeyState) -> ReadyEndState {
         self.walk.boy.update();
         if keystate.is_pressed("ArrowRight") {
-            WalkTheDogStateMachine::Walking(self.start_running())
+            ReadyEndState::Complete(self.start_running())
         } else {
-            WalkTheDogStateMachine::Ready(self)
+            ReadyEndState::Continue(self)
         }
     }
 }
+
+enum ReadyEndState {
+    Complete(WalkTheDogState<Walking>),
+    Continue(WalkTheDogState<Ready>),
+}
+
+impl From<ReadyEndState> for WalkTheDogStateMachine {
+    fn from(end_state: ReadyEndState) -> Self {
+        match end_state {
+            ReadyEndState::Complete(walking) => walking.into(),
+            ReadyEndState::Continue(ready) => ready.into(),
+        }
+    }
+}
+
+struct Walking;
 
 impl WalkTheDogState<Walking> {
     fn knocked_out(&self) -> bool {
@@ -123,7 +139,7 @@ impl WalkTheDogState<Walking> {
         }
     }
 
-    fn update(mut self, keystate: &KeyState) -> WalkTheDogStateMachine {
+    fn update(mut self, keystate: &KeyState) -> WalkingEndState {
         if keystate.is_pressed("Space") {
             self.walk.boy.jump();
         }
@@ -160,25 +176,41 @@ impl WalkTheDogState<Walking> {
         }
 
         if self.knocked_out() {
-            WalkTheDogStateMachine::GameOver(self.end_game())
+            WalkingEndState::Complete(self.end_game())
         } else {
-            WalkTheDogStateMachine::Walking(self)
+            WalkingEndState::Continue(self)
         }
     }
 }
 
-struct Walking;
+enum WalkingEndState {
+    Continue(WalkTheDogState<Walking>),
+    Complete(WalkTheDogState<GameOver>),
+}
+
+impl From<WalkingEndState> for WalkTheDogStateMachine {
+    fn from(state: WalkingEndState) -> Self {
+        match state {
+            WalkingEndState::Continue(walking) => walking.into(),
+            WalkingEndState::Complete(game_over) => game_over.into(),
+        }
+    }
+}
+
+struct GameOver {
+    new_game_event: UnboundedReceiver<()>,
+}
 
 impl WalkTheDogState<GameOver> {
     fn draw(&self, renderer: &Renderer) {
         self.walk.draw(renderer)
     }
 
-    fn update(mut self) -> WalkTheDogStateMachine {
+    fn update(mut self) -> GameOverEndState {
         if self._state.new_game_pressed() {
-            WalkTheDogStateMachine::Ready(self.new_game())
+            GameOverEndState::Complete(self.new_game())
         } else {
-            WalkTheDogStateMachine::GameOver(self)
+            GameOverEndState::Continue(self)
         }
     }
 
@@ -192,8 +224,18 @@ impl WalkTheDogState<GameOver> {
     }
 }
 
-struct GameOver {
-    new_game_event: UnboundedReceiver<()>,
+enum GameOverEndState {
+    Continue(WalkTheDogState<GameOver>),
+    Complete(WalkTheDogState<Ready>),
+}
+
+impl From<GameOverEndState> for WalkTheDogStateMachine {
+    fn from(state: GameOverEndState) -> Self {
+        match state {
+            GameOverEndState::Continue(game_over) => game_over.into(),
+            GameOverEndState::Complete(ready) => ready.into(),
+        }
+    }
 }
 
 impl GameOver {
