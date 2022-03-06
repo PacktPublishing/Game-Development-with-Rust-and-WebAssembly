@@ -62,6 +62,13 @@ struct WalkTheDogState<S> {
     walk: Walk,
 }
 
+impl<T> WalkTheDogState<T> {
+    fn draw(&self, renderer: &Renderer) {
+        self.walk.draw(renderer);
+    }
+}
+
+
 struct Ready;
 
 impl WalkTheDogState<Ready> {
@@ -83,10 +90,6 @@ impl WalkTheDogState<Ready> {
             _state: Walking,
             walk: self.walk,
         }
-    }
-
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer)
     }
 
     fn update(mut self, keystate: &KeyState) -> ReadyEndState {
@@ -118,10 +121,6 @@ struct Walking;
 impl WalkTheDogState<Walking> {
     fn knocked_out(&self) -> bool {
         self.walk.boy.knocked_out()
-    }
-
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer)
     }
 
     fn end_game(self) -> WalkTheDogState<GameOver> {
@@ -202,10 +201,6 @@ struct GameOver {
 }
 
 impl WalkTheDogState<GameOver> {
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer)
-    }
-
     fn update(mut self) -> GameOverEndState {
         if self._state.new_game_pressed() {
             GameOverEndState::Complete(self.new_game())
