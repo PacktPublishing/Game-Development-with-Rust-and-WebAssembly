@@ -68,7 +68,6 @@ impl<T> WalkTheDogState<T> {
     }
 }
 
-
 struct Ready;
 
 impl WalkTheDogState<Ready> {
@@ -1022,7 +1021,7 @@ impl Obstacle for Barrier {
 
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
-    async fn initialize(self) -> Result<Box<dyn Game>> {
+    async fn initialize(&self) -> Result<Box<dyn Game>> {
         match self.machine {
             None => {
                 let sheet = browser::fetch_json("rhb.json")
