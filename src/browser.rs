@@ -153,7 +153,7 @@ pub fn hide_ui() -> Result<()> {
 fn find_ui() -> Result<Element> {
     document().and_then(|doc| {
         doc.get_element_by_id("ui")
-            .ok_or_else(anyhow!("UI element not found"))
+            .ok_or_else(|| anyhow!("UI element not found"))
     })
 }
 
@@ -161,7 +161,7 @@ pub fn find_html_element_by_id(id: &str) -> Result<HtmlElement> {
     document()
         .and_then(|doc| {
             doc.get_element_by_id(id)
-                .ok_or_else(anyhow!("Element with id {} not found", id))
+                .ok_or_else(|| anyhow!("Element with id {} not found", id))
         })
         .and_then(|element| {
             element
