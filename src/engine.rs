@@ -9,9 +9,8 @@ use futures::channel::{
 use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
-use web_sys::AudioBuffer;
 use web_sys::AudioContext;
-use web_sys::HtmlElement;
+use web_sys::{AudioBuffer, HtmlElement};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 #[derive(Deserialize, Clone)]
@@ -166,7 +165,7 @@ pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
 
 #[async_trait(?Send)]
 pub trait Game {
-    async fn initialize(self) -> Result<Box<dyn Game>>;
+    async fn initialize(&self) -> Result<Box<dyn Game>>;
     fn update(&mut self, keystate: &KeyState);
     fn draw(&self, renderer: &Renderer);
 }
