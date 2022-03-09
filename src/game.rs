@@ -168,7 +168,7 @@ impl WalkTheDogState<Walking> {
         });
 
         if self.walk.timeline < TIMELINE_MINIMUM {
-            self.walk.generate_next_segment()
+            self.walk.generate_next_segment();
         } else {
             self.walk.timeline += walking_speed;
         }
