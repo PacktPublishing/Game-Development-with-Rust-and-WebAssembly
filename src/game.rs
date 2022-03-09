@@ -230,10 +230,7 @@ impl From<GameOverEndState> for WalkTheDogStateMachine {
 
 impl GameOver {
     fn new_game_pressed(&mut self) -> bool {
-        match self.new_game_event.try_next() {
-            Ok(Some(())) => true,
-            _ => false,
-        }
+        matches!(self.new_game_event.try_next(), Ok(Some(())))
     }
 }
 
