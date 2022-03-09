@@ -118,10 +118,6 @@ impl From<ReadyEndState> for WalkTheDogStateMachine {
 struct Walking;
 
 impl WalkTheDogState<Walking> {
-    fn knocked_out(&self) -> bool {
-        self.walk.boy.knocked_out()
-    }
-
     fn end_game(self) -> WalkTheDogState<GameOver> {
         let receiver = browser::draw_ui("<button id='new_game'>New Game</button>")
             .and_then(|_unit| browser::find_html_element_by_id("new_game"))
@@ -173,7 +169,7 @@ impl WalkTheDogState<Walking> {
             self.walk.timeline += walking_speed;
         }
 
-        if self.knocked_out() {
+        if self.walk.knocked_out() {
             WalkingEndState::Complete(self.end_game())
         } else {
             WalkingEndState::Continue(self)
@@ -937,6 +933,10 @@ pub struct Walk {
 }
 
 impl Walk {
+    fn knocked_out(&self) -> bool {
+        self.boy.knocked_out()
+    }
+
     fn reset(walk: Self) -> Self {
         let starting_obstacles =
             stone_and_platform(walk.stone.clone(), walk.obstacle_sheet.clone(), 0);
