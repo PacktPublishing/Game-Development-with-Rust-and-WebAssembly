@@ -57,8 +57,8 @@ impl WalkTheDogStateMachine {
     }
 }
 
-struct WalkTheDogState<S> {
-    _state: S,
+struct WalkTheDogState<T> {
+    _state: T,
     walk: Walk,
 }
 
