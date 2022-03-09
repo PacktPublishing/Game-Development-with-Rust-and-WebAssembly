@@ -162,10 +162,10 @@ impl WalkTheDogState<Walking> {
 
         self.walk.obstacles.retain(|obstacle| obstacle.right() > 0);
 
-        for (_, obstacle) in self.walk.obstacles.iter_mut().enumerate() {
+        self.walk.obstacles.iter_mut().for_each(|obstacle| {
             obstacle.move_horizontally(walking_speed);
             obstacle.check_intersection(&mut self.walk.boy);
-        }
+        });
 
         if self.walk.timeline < TIMELINE_MINIMUM {
             self.walk.generate_next_segment()
