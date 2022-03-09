@@ -107,8 +107,8 @@ enum ReadyEndState {
 }
 
 impl From<ReadyEndState> for WalkTheDogStateMachine {
-    fn from(end_state: ReadyEndState) -> Self {
-        match end_state {
+    fn from(state: ReadyEndState) -> Self {
+        match state {
             ReadyEndState::Complete(walking) => walking.into(),
             ReadyEndState::Continue(ready) => ready.into(),
         }
