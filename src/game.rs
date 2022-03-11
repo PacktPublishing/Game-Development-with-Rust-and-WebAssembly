@@ -1153,11 +1153,11 @@ mod tests {
         let state = WalkTheDogState {
             _state: GameOver {
                 new_game_event: receiver,
-                walk: walk,
             },
+            walk: walk,
         };
 
-        let _next_state: WalkTheDogState<Ready> = state.into();
+        let _next_state: WalkTheDogState<Ready> = state.new_game();
 
         let ui = browser::find_html_element_by_id("ui").unwrap();
         assert_eq!(ui.child_element_count(), 0);
