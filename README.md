@@ -65,7 +65,7 @@ The Code in Action videos for this book can be viewed at https://bit.ly/3uxXl4W.
 * Rust Web Programming [[Packt]](https://www.packtpub.com/product/rust-web-programming/9781800560819) [[Amazon]](https://www.amazon.com/Rust-Web-Programming-hands-programming-dp-1800560818/dp/1800560818/ref=mt_other?_encoding=UTF8&me=&qid=)
 
 ## Get to Know the Author
-** Eric Smith **is a software crafter with over 20 years of software development experience. Since 2005, he's worked at 8th Light, where he consults for companies big and small by delivering software, mentoring developers, and coaching teams. He's a frequent speaker at conferences speaking on topics such as educating developers and test-driven development, and holds a master's degree in video game development from DePaul University. Eric wrote much of the code for this book live on his Twitch stream. When he's not at the computer, you can find Eric running obstacle races and traveling with his family.
+**Eric Smith** is a software crafter with over 20 years of software development experience. Since 2005, he's worked at 8th Light, where he consults for companies big and small by delivering software, mentoring developers, and coaching teams. He's a frequent speaker at conferences speaking on topics such as educating developers and test-driven development, and holds a master's degree in video game development from DePaul University. Eric wrote much of the code for this book live on his Twitch stream. When he's not at the computer, you can find Eric running obstacle races and traveling with his family.
 
 
 
