@@ -53,6 +53,7 @@ With the following software and hardware list you can run all code files present
 | -------- | ------------------------------------| -----------------------------------|
 | (1 - 11) |  Rust Toolchains                    | Any Os                             |
 | (1 - 11) |  Rust Code                          | Any Os                             |
+| (1 - 11) |  NodeJS (16.13.0)                   | Any Os                             |
 
 
 We also provide a PDF file that has color images of the screenshots/diagrams used in this book. [Click here to download it](https://static.packt-cdn.com/downloads/9781801070973_ColorImages.pdf).
