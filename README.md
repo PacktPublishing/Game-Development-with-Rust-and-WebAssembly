@@ -68,7 +68,9 @@ You can use a lot of the `cargo` commands as well - but those do not go through 
 
 #### Deployment
 
-This branch is setup for continuous deployment with GitHub Actions, as is the tag for chapter_10. Something to keep in mind when forking the repository.
+This branch is setup for continuous deployment with GitHub Actions, as is the tag for chapter_10. Something to keep in mind when forking the repository. The current production version of this game can be found at:
+
+https://rust-games-webassembly.netlify.app
 
 ## More Information 
 We also provide a PDF file that has color images of the screenshots/diagrams used in this book. [Click here to download it](https://static.packt-cdn.com/downloads/9781801070973_ColorImages.pdf).
