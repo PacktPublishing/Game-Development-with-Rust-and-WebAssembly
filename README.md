@@ -27,19 +27,8 @@ alt="https://www.packtpub.com/" border="5" /></a>
 
 
 ## Instructions and Navigations
-All of the project files are organized into folders.
 
-The code will look like the following:
-```
-button {
-    font-family: 'Ken Future';
-    background: -72px -60px url('Button.svg');
-    border: none;
-    width: 82px;
-    height: 33px;
-}
-
-```
+You're currently looking the main branch of this repository, which represents the "completed" state of this book. I say completed because development on this branch is ongoing - specifically the challenges cited in the book are being implemented here. If you want to see the end state of any chapter those are stored as tags, such as https://github.com/PacktPublishing/Game-Development-with-Rust-and-WebAssembly/tree/chapter_1.
 
 **Following is what you need for this book:**
 
@@ -49,12 +38,39 @@ With the following software and hardware list you can run all code files present
 
 ### Software and Hardware List
 
-| Chapter  | Software required                   | OS required                        |
-| -------- | ------------------------------------| -----------------------------------|
-| (1 - 11) |  Rust Toolchains                    | Any Os                             |
-| (1 - 11) |  Rust Code                          | Any Os                             |
+| Chapter  | Software required                          | version | OS required |
+|----------|--------------------------------------------|---------|-------------|
+| (1 - 11) | Rust Toolchains via Rustup                 | 1.57.0  | Any OS      |
+| (1 - 11) | NodeJS                                     | 16.13.0 | Any OS      |
+| (1 - 11) | Rust Compile target wasm32-unknown-unknown | NA      | NA          |
 
+I use https://asdf-vm.com to install Node and a .tool-versions file is present but you don't have to. Instructions for creating a new project are found in the book (chapter 1) but the project can also be setup by cloning this repository and running the commands for building and running. Speaking of that:
 
+### Running this App
+
+#### Installation
+
+`npm install` Will install the Node dependencies (primarily WebPack). Don't worry you don't have to think about those much.
+
+#### Running in debug
+
+`npm start` Will compile the application to Wasm and start a server, running it at localhost:8080 by default. This will also ensure `wasm-pack` is setup and running and run `cargo build`.
+
+#### Building for release
+
+`npm run build` Creates a release build and puts it in the `dist` directory.
+
+#### Running Tests
+
+`npm run test`
+
+You can use a lot of the `cargo` commands as well - but those do not go through the process of bundling up the built assembly for distribution. 
+
+#### Deployment
+
+This branch is setup for continuous deployment with GitHub Actions, as is the tag for chapter_10. Something to keep in mind when forking the repository.
+
+## More Information 
 We also provide a PDF file that has color images of the screenshots/diagrams used in this book. [Click here to download it](https://static.packt-cdn.com/downloads/9781801070973_ColorImages.pdf).
 
 The Code in Action videos for this book can be viewed at https://bit.ly/3uxXl4W.
