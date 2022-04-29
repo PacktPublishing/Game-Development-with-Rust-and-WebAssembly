@@ -169,6 +169,8 @@ impl WalkTheDogState<Walking> {
             self.walk.timeline += walking_speed;
         }
 
+        self.walk.score += 1;
+
         if self.walk.knocked_out() {
             WalkingEndState::Complete(self.end_game())
         } else {
@@ -929,6 +931,7 @@ pub struct Walk {
     backgrounds: [Image; 2],
     obstacles: Vec<Box<dyn Obstacle>>,
     timeline: i16,
+    score: u16,
 }
 
 impl Walk {
@@ -947,6 +950,7 @@ impl Walk {
             obstacles: starting_obstacles,
             obstacle_sheet: walk.obstacle_sheet,
             stone: walk.stone,
+            score: 0,
             timeline,
         }
     }
@@ -960,6 +964,9 @@ impl Walk {
         self.obstacles.iter().for_each(|obstacle| {
             obstacle.draw(renderer);
         });
+        renderer
+            .draw_text(&format!("Score: {}", self.score), &Point { x: 400, y: 75 })
+            .unwrap();
     }
 
     fn velocity(&self) -> i16 {
@@ -1061,6 +1068,7 @@ impl Game for WalkTheDog {
                     ],
                     obstacles: starting_obstacles,
                     obstacle_sheet: sprite_sheet,
+                    score: 0,
                     stone,
                     timeline,
                 });
