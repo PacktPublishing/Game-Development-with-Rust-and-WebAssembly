@@ -138,7 +138,7 @@ impl Renderer {
 
     #[allow(dead_code)]
     pub fn draw_text(&self, text: &str, location: &Point) -> Result<()> {
-        self.context.set_font("16pt serif");
+        self.context.set_font("16pt Ken Future");
         self.context
             .fill_text(text, location.x.into(), location.y.into())
             .map_err(|err| anyhow!("Error filling text {:#?}", err))?;
