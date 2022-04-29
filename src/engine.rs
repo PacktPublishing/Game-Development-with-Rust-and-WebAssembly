@@ -136,7 +136,6 @@ impl Renderer {
         self.context.stroke();
     }
 
-    #[allow(dead_code)]
     pub fn draw_text(&self, text: &str, location: &Point) -> Result<()> {
         self.context.set_font("16pt Ken Future");
         self.context
