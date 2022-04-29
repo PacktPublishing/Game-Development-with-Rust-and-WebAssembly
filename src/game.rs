@@ -975,7 +975,7 @@ impl Walk {
 
     fn generate_next_segment(&mut self) {
         let mut rng = thread_rng();
-        let next_segment = rng.gen_range(0..2);
+        let next_segment = rng.gen_range(0..3);
 
         let mut next_obstacles = match next_segment {
             0 => stone_and_platform(
@@ -988,6 +988,7 @@ impl Walk {
                 self.obstacle_sheet.clone(),
                 self.timeline + OBSTACLE_BUFFER,
             ),
+            2 => bump_with_pool(self.obstacle_sheet.clone(), self.timeline + OBSTACLE_BUFFER),
             _ => vec![],
         };
         self.timeline = rightmost(&next_obstacles);

@@ -90,3 +90,18 @@ pub fn platform_and_stone(
         )),
     ]
 }
+
+pub fn bump_with_pool(sprite_sheet: Rc<SpriteSheet>, offset_x: i16) -> Vec<Box<dyn Obstacle>> {
+    vec![
+        // Box of land (?)
+        Box::new(Platform::new(
+            sprite_sheet,
+            Point {
+                x: offset_x,
+                y: 500,
+            },
+            &["1.png", "2.png"],
+            &[Rect::new_from_x_y(offset_x, 500, 128, 128)],
+        )),
+    ]
+}
