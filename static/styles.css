@@ -7,12 +7,22 @@
   src: url('kenney_future_narrow-webfont.woff2');
 }
 
+#score {
+    font-family: 'Ken Future';
+    font-size: 16pt;
+    width: 200px;
+    position: absolute;
+    left: 400px;
+    top: 40px;
+}
+
 button {
     font-family: 'Ken Future';
     background: -72px -60px url('Button.svg');
     border: none;
     width: 82px;
     height: 33px;
+    position: absolute;
     transform: scale(1.8) translate(150px, 100px);
 }
 

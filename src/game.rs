@@ -72,6 +72,7 @@ struct Ready;
 
 impl WalkTheDogState<Ready> {
     fn new(walk: Walk) -> WalkTheDogState<Ready> {
+        browser::draw_ui("<p id='score'>0</>").unwrap();
         WalkTheDogState {
             _state: Ready,
             walk,
@@ -964,8 +965,8 @@ impl Walk {
         self.obstacles.iter().for_each(|obstacle| {
             obstacle.draw(renderer);
         });
-        renderer
-            .draw_text(&format!("Score: {}", self.score), &Point { x: 400, y: 75 })
+        browser::find_html_element_by_id("score")
+            .map(|element| element.set_inner_html(&format!("Score: {}", self.score)))
             .unwrap();
     }
 
