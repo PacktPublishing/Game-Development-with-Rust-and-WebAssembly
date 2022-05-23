@@ -1149,6 +1149,7 @@ mod tests {
             obstacles: vec![],
             obstacle_sheet: Rc::new(sprite_sheet),
             stone: image.clone(),
+            score: 0,
             timeline: 0,
         };
 
