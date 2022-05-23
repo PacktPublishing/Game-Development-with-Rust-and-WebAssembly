@@ -25,8 +25,7 @@ If you feel this book is for you, get your [copy](https://www.amazon.com/dp/1801
 <a href="https://www.packtpub.com/?utm_source=github&utm_medium=banner&utm_campaign=GitHubBanner"><img src="https://raw.githubusercontent.com/PacktPublishing/GitHub/master/GitHub.png" 
 alt="https://www.packtpub.com/" border="5" /></a>
 
-
-## Instructions and Navigations
+## Instructions and Navigation
 
 You're currently looking the main branch of this repository, which represents the "completed" state of this book. I say completed because development on this branch is ongoing - specifically the challenges cited in the book are being implemented here. If you want to see the end state of any chapter those are stored as tags, such as https://github.com/PacktPublishing/Game-Development-with-Rust-and-WebAssembly/tree/chapter_1.
 
@@ -71,6 +70,13 @@ You can use a lot of the `cargo` commands as well - but those do not go through 
 This branch is setup for continuous deployment with GitHub Actions, as is the tag for chapter_10. Something to keep in mind when forking the repository. The current production version of this game can be found at:
 
 https://rust-games-webassembly.netlify.app
+
+## Challenges
+
+At the end of the book (Further Resources and What's Next?) there are six challenges for you, the reader. I'll be completing them on and off [my stream](www.twitch.tv/paytonrules), and making a note here when they are complete.
+
+Challenge #6:
+- Challenge #6 was completed two ways. I displayed the score via the canvas's render text function, as well as via the DOM. There are two branches with the solutions: [add-score](https://github.com/PacktPublishing/Game-Development-with-Rust-and-WebAssembly/tree/add-score) and [add-score-html](https://github.com/PacktPublishing/Game-Development-with-Rust-and-WebAssembly/tree/add-score-via-html). The HTML version looks a lot better, and is also implemented in the main branch.
 
 ## More Information 
 We also provide a PDF file that has color images of the screenshots/diagrams used in this book. [Click here to download it](https://static.packt-cdn.com/downloads/9781801070973_ColorImages.pdf).
