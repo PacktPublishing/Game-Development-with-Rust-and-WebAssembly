@@ -13,27 +13,18 @@ jobs:
           rustup update
           rustup component add clippy
           rustup install 1.57
-      # - uses: actions-rs/toolchain@v1
-      #   with:
-      #     toolchain: 1.57.0
-      #     target: wasm32-unknown-unknown
-      #     override: true
-      #     components: clippy
-      # - uses: actions-rs/install@v0.1
-      #   with:
-      #     crate: wasm-pack
-      #     version: 0.9.1
-      #     use-tool-cache: true
-      # - name: Annotate commit with clippy warnings
-      #   uses: actions-rs/clippy-check@v1
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      # - uses: actions/setup-node@v2
-      #   with:
-      #     node-version: '16.13.0'
-      # - run: npm install
-      # - run: npm test
-      # - run: npm run build
+          rustup target add wasm32-unknown-unknown
+      - name: Annotate commit with clippy warnings
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16.13.0'
+      - run: npm install -g wasm-pack
+      - run: npm install
+      - run: npm test
+      - run: npm run build
       # - name: Deploy to Netlify
       #   uses: nwtgck/actions-netlify@v1.2
       #   with:
