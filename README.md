@@ -94,8 +94,6 @@ The Code in Action videos for this book can be viewed at https://bit.ly/3uxXl4W.
 ## Get to Know the Author
 **Eric Smith** is a software crafter with over 20 years of software development experience. Since 2005, he's worked at 8th Light, where he consults for companies big and small by delivering software, mentoring developers, and coaching teams. He's a frequent speaker at conferences speaking on topics such as educating developers and test-driven development, and holds a master's degree in video game development from DePaul University. Eric wrote much of the code for this book live on his Twitch stream. When he's not at the computer, you can find Eric running obstacle races and traveling with his family.
 
-
-
 ### Download a free PDF
 
  <i>If you have already purchased a print or Kindle version of this book, you can get a DRM-free PDF version at no cost.<br>Simply click on the link to claim your free PDF.</i>
