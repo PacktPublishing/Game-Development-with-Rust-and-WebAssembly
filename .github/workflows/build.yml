@@ -15,7 +15,7 @@ jobs:
           rustup install 1.57
           rustup target add wasm32-unknown-unknown
       - name: Annotate commit with clippy warnings
-        uses: actions-rs/clippy-check@v1.0.7
+        uses: LoliGothick/clippy-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v3
